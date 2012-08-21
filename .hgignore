@@ -16,6 +16,9 @@ CMakeCache.txt
 Makefile
 tags
 *.log
+*.o
+*.mex
+octave-core
 
 src/rbdl_config.h
 
