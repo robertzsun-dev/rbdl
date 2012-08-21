@@ -1,16 +1,9 @@
-all: rbdlCreateModel.mex rbdlDestroyModel.mex rbdlGetDofCount.mex rbdlAddBody.mex
+SRC_FILES := $(patsubst %.cc,%.mex,$(wildcard *.cc))
 
-rbdlCreateModel.mex: rbdlCreateModel.cc
-	mkoctfile --mex -I../src -I../Debug/src -L../Debug -Wl,-rpath,../Debug -lrbdl rbdlCreateModel.cc
+all: $(SRC_FILES)
 
-rbdlDestroyModel.mex: rbdlDestroyModel.cc
-	mkoctfile --mex -I../src -I../Debug/src -L../Debug -Wl,-rpath,../Debug -lrbdl rbdlDestroyModel.cc
-
-rbdlGetDofCount.mex: rbdlGetDofCount.cc
-	mkoctfile --mex -I../src -I../Debug/src -L../Debug -Wl,-rpath,../Debug -lrbdl rbdlGetDofCount.cc
-
-rbdlAddBody.mex: rbdlAddBody.cc
-	mkoctfile --mex -I../src -I../Debug/src -L../Debug -Wl,-rpath,../Debug -lrbdl rbdlAddBody.cc
+%.mex: %.cc
+	mkoctfile --mex -I../src/ -I../Debug/src -L../Debug -Wl,-rpath,../Debug -lrbdl $<
 
 clean:
-	rm -f *.mex
+	rm -f *.mex *.o
