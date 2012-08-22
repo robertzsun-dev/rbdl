@@ -1,6 +1,32 @@
 #include "rbdl.h"
 
-bool GetVector3d (mxArray *array, RigidBodyDynamics::Math::Vector3d &vector3d_out) {
+bool GetVectorNd (const mxArray *array, RigidBodyDynamics::Math::VectorNd &vector_out) {
+	if (!mxIsDouble(array)) {
+		mexErrMsgTxt("Error: expected an array of double values!");
+		return false;
+	}
+
+	mwSize *dimensions = mxGetDimensions (array);
+
+	if (dimensions[1] != 1) {
+		mexErrMsgTxt ("Error: expected a column vector for variable size vector!");
+		return false;
+	}
+
+	unsigned int dim = static_cast<unsigned int> (dimensions[0] * dimensions[1]);
+
+	if (vector_out.size() != dim)
+		vector_out = RigidBodyDynamics::Math::VectorNd(dim);
+
+	double *value_ptr = mxGetPr (array);
+
+	for (unsigned int i = 0; i < dim; i++)
+		vector_out[i] = value_ptr[i];
+
+	return true;
+}
+
+bool GetVector3d (const mxArray *array, RigidBodyDynamics::Math::Vector3d &vector3d_out) {
 	mwSize *dimensions = mxGetDimensions (array);
 
 	if (!mxIsDouble(array)) {
@@ -22,7 +48,7 @@ bool GetVector3d (mxArray *array, RigidBodyDynamics::Math::Vector3d &vector3d_ou
 	return true;
 }
 
-bool GetMatrix3d (mxArray *array, RigidBodyDynamics::Math::Matrix3d &matrix3d_out) {
+bool GetMatrix3d (const mxArray *array, RigidBodyDynamics::Math::Matrix3d &matrix3d_out) {
 	mwSize *dimensions = mxGetDimensions (array);
 
 	if (!mxIsDouble(array)) {

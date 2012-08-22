@@ -1,0 +1,11 @@
+This directory constains wrappers for some of the RBDL functions. This is
+more of a proof of concept but adding wrappers for the complete library should
+be straight forward.
+
+If anyone is interested in theses wrappers feel free to contact me or send
+patches. I would be happy to assist.
+
+You may have to modify the Makefile to adjust the *_PATH settings to be able to
+compile it.
+
+See example.m for usage and API overview.
