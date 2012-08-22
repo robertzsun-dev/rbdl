@@ -91,6 +91,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	// body
 	
 	Body body;
+	double mass;
+	RigidBodyDynamics::Math::Vector3d com;
+	RigidBodyDynamics::Math::Matrix3d inertia;
 
 	for (int fi = 0; fi < mxGetNumberOfFields (prhs[3]); fi++) {
 		std::string field_name = mxGetFieldNameByNumber(prhs[3], fi);
@@ -101,14 +104,14 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				mexErrMsgTxt("Error: number expected for body.mass!");
 				return;
 			}
-			body.mMass =  *mxGetPr(field);
+			mass =  *mxGetPr(field);
 		} else if (field_name == "com") {
-			if (!GetVector3d (field, body.mCenterOfMass)) {
+			if (!GetVector3d (field, com)) {
 				mexErrMsgTxt("Error parsing body.com");
 				return;
 			}
 		} else if (field_name == "inertia") {
-			if (!GetMatrix3d (field, body.mInertia)) {
+			if (!GetMatrix3d (field, inertia)) {
 				mexErrMsgTxt("Error parsing body.inertia.");
 				return;
 			}
@@ -116,6 +119,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			mexPrintf ("Warning: unknown field in body structure: %s!\n", mxGetFieldNameByNumber (prhs[3], fi));
 		}
 	}
+
+	body = Body (mass, com, inertia);
 
 	// body name (optional)
 	
