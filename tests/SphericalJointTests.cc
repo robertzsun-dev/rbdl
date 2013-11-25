@@ -456,3 +456,57 @@ TEST_FIXTURE(SphericalJoint, TestContacts) {
 
 	CHECK_ARRAY_CLOSE (emu_force_kokkevis.data(), sph_force_kokkevis.data(), 3, TEST_PREC);
 }
+
+TEST (SphericalJointZYX) {
+	Body body (1., Vector3d (0.5, 0., 0.), Vector3d (0.2, 0.3, 0.4));
+	Joint joint_spherical_zyx (JointTypeSphericalZYX);
+	Joint joint_emulated_zyx (
+			SpatialVector (0., 0., 1., 0., 0., 0.),
+			SpatialVector (0., 1., 0., 0., 0., 0.),
+			SpatialVector (1., 0., 0., 0., 0., 0.)
+			);
+
+	Model model_spherical_zyx;
+	Model model_emulated_zyx;
+
+	model_spherical_zyx.AppendBody (Xtrans (Vector3d (1., 0., 0.)), joint_spherical_zyx, body);
+
+	model_emulated_zyx.AppendBody (Xtrans (Vector3d (1., 0., 0.)), joint_emulated_zyx, body);
+
+	VectorNd q (VectorNd::Zero(model_spherical_zyx.q_size));
+	VectorNd qdot (VectorNd::Zero(model_spherical_zyx.qdot_size));
+	VectorNd qddot (VectorNd::Zero(model_spherical_zyx.qdot_size));
+	VectorNd tau (VectorNd::Zero(model_spherical_zyx.qdot_size));
+
+	q[0] = 1.1;
+	q[1] = 2.1;
+	q[2] = 3.1;
+
+	qdot[0] = -1.1;
+	qdot[1] = -2.1;
+	qdot[2] = -3.1;
+
+	qddot[0] = 1.3;
+	qddot[1] = 2.3;
+	qddot[2] = 3.3;
+
+	tau[0] = 0.5;
+	tau[1] = 0.6;
+	tau[2] = 0.7;
+
+	VectorNd tau_emu (VectorNd::Zero(model_spherical_zyx.qdot_size));
+	VectorNd tau_sph (VectorNd::Zero(model_spherical_zyx.qdot_size));
+
+	InverseDynamics (model_emulated_zyx, q, qdot, qddot, tau_emu);
+	InverseDynamics (model_spherical_zyx, q, qdot, qddot, tau_sph);
+
+	CHECK_ARRAY_CLOSE (tau_emu.data(), tau_sph.data(), tau_emu.size(), TEST_PREC);
+
+	VectorNd qddot_emu (VectorNd::Zero(model_spherical_zyx.qdot_size));
+	VectorNd qddot_sph (VectorNd::Zero(model_spherical_zyx.qdot_size));
+
+	ForwardDynamics (model_emulated_zyx, q, qdot, tau, qddot_emu);	
+	ForwardDynamics (model_spherical_zyx, q, qdot, tau, qddot_sph);	
+
+	CHECK_ARRAY_CLOSE (qddot_emu.data(), qddot_sph.data(), qddot_emu.size(), TEST_PREC);
+}
