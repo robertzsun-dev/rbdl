@@ -248,21 +248,20 @@ void InverseDynamics (
 			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.);
 			
 			if (model.mJoints[i].mDoFCount == 3) {
-				Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
-				model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
+				model.a[i] = model.a[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
 			} else {
 				model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
 			}	
 
 		}	else {
 			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
+
 			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
 			model.c[i] = c_J + crossm(model.v[i],v_J);
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 
 			if (model.mJoints[i].mDoFCount == 3) {
-				Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
-				model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
+				model.a[i] = model.a[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
 			} else {
 				model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
 			}	

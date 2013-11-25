@@ -32,7 +32,7 @@ struct SampleData {
 		tau_data = NULL;
 	}
 
-	void fill_random_data (int dof_count, int sample_count) {
+	void fill_random_data (int q_size, int qdot_size, int sample_count) {
 		delete_data();
 
 		q_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
@@ -41,13 +41,15 @@ struct SampleData {
 		tau_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
 
 		for (int si = 0; si < sample_count; si++) {
-			q_data[si].resize (dof_count);
-			qdot_data[si].resize (dof_count);
-			qddot_data[si].resize (dof_count);
-			tau_data[si].resize (dof_count);
+			q_data[si].resize (q_size);
+			qdot_data[si].resize (qdot_size);
+			qddot_data[si].resize (qdot_size);
+			tau_data[si].resize (qdot_size);
 
-			for (int i = 0; i < dof_count; i++) {
+			for (int i = 0; i < q_size; i++) 
 				q_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
+
+			for (int i = 0; i < qdot_size; i++) {
 				qdot_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
 				qddot_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
 				tau_data[si][i] = (rand() / RAND_MAX) * 2. -1.;

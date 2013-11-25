@@ -1,4 +1,5 @@
 2.2.1 -> next
+- removed	#define EIGEN_DEFAULT_TO_ROW_MAJOR
 - disabled clearing of joint space inertia matrix in CRBA.
   It is expected that the matrix is cleared by the user when neccessary.
 

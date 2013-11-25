@@ -42,7 +42,7 @@ enum ContactsBenchmark {
 
 double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fill_random_data(model->q_size, model->qdot_size, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
@@ -67,7 +67,7 @@ double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
 
 double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fill_random_data(model->q_size, model->qdot_size, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
@@ -93,7 +93,7 @@ double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count
 
 double run_inverse_dynamics_RNEA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fill_random_data(model->q_size, model->qdot_size, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
@@ -119,7 +119,7 @@ double run_inverse_dynamics_RNEA_benchmark (Model *model, int sample_count) {
 
 double run_CRBA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fill_random_data(model->q_size, model->qdot_size, sample_count);
 
 	Math::MatrixNd H = Math::MatrixNd(model->dof_count, model->dof_count);
 
@@ -142,7 +142,7 @@ double run_CRBA_benchmark (Model *model, int sample_count) {
 
 double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fill_random_data(model->q_size, model->qdot_size, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
@@ -158,7 +158,7 @@ double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constrain
 
 double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fill_random_data(model->q_size, model->qdot_size, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
@@ -536,8 +536,6 @@ int main (int argc, char *argv[]) {
 		cout << "= Contacts: ForwardDynamicsContactsKokkevis" << endl;
 		contacts_benchmark (benchmark_sample_count, ContactsBenchmarkKokkevis);
 	}
-
-
 
 	return 0;
 }

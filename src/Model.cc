@@ -212,6 +212,8 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		return previously_added_body_id;
 	} else if (joint.mJointType == JointTypeSpherical) {
 		// no action required
+	} else if (joint.mJointType == JointTypeSphericalZYX) {
+		// no action required
 	} else if (joint.mJointType != JointTypePrismatic 
 			&& joint.mJointType != JointTypeRevolute) {
 		previously_added_body_id = AddBodyMultiDofJoint (*this, parent_id, joint_frame, joint, body, body_name);
