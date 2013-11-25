@@ -58,25 +58,16 @@ void ForwardDynamics (
 
 		model.X_lambda[i] = X_J * model.X_T[i];
 
-		if (lambda != 0)
+		if (lambda != 0) {
 			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
-		else
+			model.v[i] = model.X_lambda[i].apply( model.v.at(lambda)) + v_J;
+		} else {
 			model.X_base[i] = model.X_lambda[i];
-
-		model.v[i] = model.X_lambda[i].apply( model.v.at(lambda)) + v_J;
-
-		/*
-		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
-		LOG << "v_J (" << i << "):" << std::endl << v_J << std::endl;
-		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
-		LOG << "X_base (" << i << "):" << std::endl << model.X_base[i] << std::endl;
-		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda[i] << std::endl;
-		LOG << "SpatialVelocity (" << i << "): " << model.v[i] << std::endl;
-		*/
-
+			model.v[i] = v_J;
+		}
+	
 		model.c[i] = c_J + crossm(model.v[i],v_J);
 		model.IA[i] = model.mBodies[i].mSpatialInertia;
-
 		model.pA[i] = crossf(model.v[i],model.IA[i] * model.v[i]);
 
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
@@ -236,6 +227,7 @@ void InverseDynamics (
 		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
+
 		unsigned int lambda = model.lambda[i];
 
 		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
@@ -245,7 +237,8 @@ void InverseDynamics (
 		if (lambda == 0) {
 			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
-			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.);
+			model.c[i] = c_J + crossm(model.v[i],v_J);
+			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.) + model.c[i];
 			
 			if (model.mJoints[i].mDoFCount == 3) {
 				model.a[i] = model.a[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
@@ -272,20 +265,6 @@ void InverseDynamics (
 			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
 	}
 
-	LOG << "-- first loop --" << std::endl;
-	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "X_base[" << i << "] = " << std::endl << model.X_base[i] << std::endl;
-	}
-	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "v[" << i << "] = " << model.v[i].transpose() << std::endl;
-	}
-	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "a[" << i << "] = " << model.a[i].transpose() << std::endl;
-	}
-	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "f[" << i << "] = " << model.f[i].transpose() << std::endl;
-	}
-
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int q_index = model.mJoints[i].q_index;
 		unsigned int lambda = model.lambda[i];
@@ -304,14 +283,6 @@ void InverseDynamics (
 		}
 	}
 
-	LOG << "-- second loop" << std::endl;
-	LOG << "Tau = " << Tau.transpose() << std::endl;
-	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "f[" << i << "] = " << model.f[i].transpose() << std::endl;
-	}
-	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "S[" << i << "] = " << model.S[i].transpose() << std::endl;
-	}
 }
 
 RBDL_DLLAPI
