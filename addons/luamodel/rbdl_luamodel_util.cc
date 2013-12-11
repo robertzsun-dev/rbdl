@@ -58,7 +58,7 @@ int main (int argc, char *argv[]) {
 
 	if (dof_overview) {
 		cout << "Degree of freedom overview:" << endl;
-		cout << RigidBodyDynamics::Utils::GetModelDOFOverview(model);
+		cout << RigidBodyDynamics::Utils::GetModelDofOverview(model);
 	}
 
 	if (model_hierarchy) {

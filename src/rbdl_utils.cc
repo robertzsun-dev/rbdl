@@ -50,11 +50,53 @@ string get_body_name (const RigidBodyDynamics::Model &model, unsigned int body_i
 	return model.GetBodyName(body_id);
 }
 
-RBDL_DLLAPI std::string GetModelDOFOverview (const Model &model) {
+RBDL_DLLAPI std::string GetDofDescription (const Model &model, unsigned int dof_index) {
+	unsigned int joint_index = 0;
+	unsigned int axis_index = 0;
+
+	if (dof_index >= model.dof_count) {
+		// handle w component of a quaternion
+		axis_index = 3;
+		int quat_index = model.dof_count- dof_index + 1;
+		joint_index = 0;
+		do {
+			if (model.mJoints[joint_index].mJointType == JointTypeSpherical) {
+				quat_index --;
+			}
+			joint_index ++;
+		} while (quat_index > 0);
+		joint_index --;
+	} else {
+		for (joint_index = 0; joint_index < model.mJoints.size(); joint_index++) {
+			unsigned int q_index = model.mJoints[joint_index].q_index;
+			if (q_index <= dof_index  && q_index + model.mJoints[joint_index].mDofCount > dof_index) {
+				axis_index = dof_index - q_index;
+				break;
+			}
+		}
+	}
+
+	if (model.mJoints[joint_index].mJointType == JointTypeSpherical) {
+		string dof_name;
+		switch (axis_index) {
+			case 0: dof_name = dof_name + "_QX"; break;
+			case 1: dof_name = dof_name + "_QY"; break;
+			case 2: dof_name = dof_name + "_QZ"; break;
+			case 3: dof_name = dof_name + "_QW"; break;
+			default: break;
+		}
+		
+		return get_body_name(model, joint_index) + dof_name;
+	}
+
+	return get_body_name(model, joint_index) + std::string("_") + get_dof_name (model.mJoints[joint_index].mJointAxes[axis_index]);
+}
+
+RBDL_DLLAPI std::string GetModelDofOverview (const Model &model) {
 	stringstream result ("");
 
-	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		result << setfill(' ') << setw(3) << i - 1 << ": " << get_body_name(model, i) << "_" << get_dof_name (model.S[i]) << endl;
+	for (unsigned int i = 0; i < model.q_size; i++) {
+		result << setfill(' ') << setw(3) << i << ": " << GetDofDescription(model, i) << endl;
 	}
 
 	return result.str();

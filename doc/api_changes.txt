@@ -2,6 +2,10 @@
 - removed	#define EIGEN_DEFAULT_TO_ROW_MAJOR
 - disabled clearing of joint space inertia matrix in CRBA.
   It is expected that the matrix is cleared by the user when neccessary.
+- Renamed util function GetModelDOFOverview to GetModelDofOverview
+- Added util function GetDoFDescription
+- Removed spatial_inverse, spatial_adjoint
+- Added SpatialTransform.inverse(), SpatialTransform.applyInverse()
 
 2.2.0 -> 2.2.1
 - properly exporting LuaTables++ functions when using LuaModel addon

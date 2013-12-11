@@ -330,7 +330,7 @@ template<> double LuaTableNode::getDefault<double>(const double &default_value) 
 template<> std::string LuaTableNode::getDefault<std::string>(const std::string &default_value) {
 	std::string result = default_value;
 
-	if (stackQueryValue()) {
+	if (stackQueryValue() && lua_isstring(luaTable->L, -1)) {
 		result = lua_tostring (luaTable->L, -1);
 	}
 
