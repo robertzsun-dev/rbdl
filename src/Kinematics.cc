@@ -286,7 +286,7 @@ void CalcPointJacobian (
 			unsigned int q_index = model.mJoints[j].q_index;
 
 			if (model.mJoints[j].mDoFCount == 3) {
-				Matrix63 S_base = point_trans * spatial_inverse (model.X_base[j].toMatrix()) * model.multdof3_S[j];
+				Matrix63 S_base = point_trans * model.X_base[j].inverse().toMatrix() * model.multdof3_S[j];
 
 				G(0, q_index) = S_base(3, 0);
 				G(1, q_index) = S_base(4, 0);
@@ -301,7 +301,7 @@ void CalcPointJacobian (
 				G(2, q_index + 2) = S_base(5, 2);
 			} else {
 				SpatialVector S_base;
-				S_base = point_trans * spatial_inverse(model.X_base[j].toMatrix()) * model.S[j];
+				S_base = point_trans * model.X_base[j].applyInverse(model.S[j]);
 
 				G(0, q_index) = S_base[3];
 				G(1, q_index) = S_base[4];
@@ -349,12 +349,12 @@ Vector3d CalcPointVelocity (
 //	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
 	LOG << "body_transf    = " << std::endl << model.X_base[reference_body_id].toMatrix() << std::endl;
 	LOG << "point_abs_ps   = " << point_abs_pos.transpose() << std::endl;
-	LOG << "X   = " << std::endl << Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[reference_body_id].toMatrix()) << std::endl;
+	LOG << "X   = " << std::endl << (SpatialTransform (Matrix3d::Identity(3,3), point_abs_pos) * model.X_base[reference_body_id].inverse()).toMatrix() << std::endl;
 	LOG << "v   = " << model.v[reference_body_id].transpose() << std::endl;
 
 	// Now we can compute the spatial velocity at the given point
 //	SpatialVector body_global_velocity (global_velocities.at(body_id));
-	SpatialVector point_spatial_velocity = Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[reference_body_id].toMatrix()) * model.v[reference_body_id];
+	SpatialVector point_spatial_velocity = (SpatialTransform (Matrix3d::Identity(3,3), point_abs_pos) * model.X_base[reference_body_id].inverse()).apply(model.v[reference_body_id]);
 
 	LOG << "point_velocity = " <<	Vector3d (
 			point_spatial_velocity[3],
@@ -401,7 +401,7 @@ Vector3d CalcPointAcceleration (
 		reference_point = CalcBaseToBodyCoordinates (model, Q, reference_body_id, base_coords, false);
 	}
 
-	SpatialVector body_global_velocity (spatial_inverse(model.X_base[reference_body_id].toMatrix()) * model.v[reference_body_id]);
+	SpatialVector body_global_velocity (model.X_base[reference_body_id].applyInverse(model.v[reference_body_id]));
 
 	LOG << " orientation " << std::endl << CalcBodyWorldOrientation (model, Q, reference_body_id, false) << std::endl;
 	LOG << " orientationT " << std::endl <<  CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose() << std::endl;

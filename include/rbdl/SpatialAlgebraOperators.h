@@ -102,7 +102,7 @@ struct RBDL_DLLAPI SpatialTransform {
 	 *
 	 * \returns (E * w, - E * rxw + E * v)
 	 */
-	SpatialVector apply (const SpatialVector &v_sp) {
+	SpatialVector apply (const SpatialVector &v_sp) const {
 		Vector3d v_rxw (
 				v_sp[3] - r[1]*v_sp[2] + r[2]*v_sp[1],
 				v_sp[4] - r[2]*v_sp[0] + r[0]*v_sp[2],
@@ -118,7 +118,21 @@ struct RBDL_DLLAPI SpatialTransform {
 				);
 	}
 
-	inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
+	/** Same as X^-1 * v.
+	 *
+	 * \returns (E^T * w, E^T * v + r x * E^T w) 
+	 */
+	SpatialVector applyInverse (const SpatialVector &v_sp) const {
+		Vector3d up = E.transpose() * Vector3d (v_sp[0], v_sp[1], v_sp[2]);
+		Vector3d lo = E.transpose() * Vector3d (v_sp[3], v_sp[4], v_sp[5]) + r.cross (up);
+
+		return SpatialVector (
+				up[0], up[1], up[2],
+				lo[0], lo[1], lo[2]
+				);	
+	}
+
+	inline Matrix3d VectorCrossMatrix (const Vector3d &vector) const {
 		return Matrix3d (
 				0., -vector[2], vector[1],
 				vector[2], 0., -vector[0],
@@ -139,7 +153,7 @@ struct RBDL_DLLAPI SpatialTransform {
 				);
 	}
 
-	SpatialVector applyTranspose (const SpatialVector &f_sp) {
+	SpatialVector applyTranspose (const SpatialVector &f_sp) const {
 		Vector3d E_T_f (
 				E(0,0) * f_sp[3] + E(1,0) * f_sp[4] + E(2,0) * f_sp[5],
 				E(0,1) * f_sp[3] + E(1,1) * f_sp[4] + E(2,1) * f_sp[5],
@@ -156,7 +170,7 @@ struct RBDL_DLLAPI SpatialTransform {
 				);
 	}
 
-	SpatialVector applyAdjoint (const SpatialVector &f_sp) {
+	SpatialVector applyAdjoint (const SpatialVector &f_sp) const {
 		Vector3d En_rxf = E * (Vector3d (f_sp[0], f_sp[1], f_sp[2]) - r.cross(Vector3d (f_sp[3], f_sp[4], f_sp[5])));
 //		Vector3d En_rxf = E * (Vector3d (f_sp[0], f_sp[1], f_sp[2]) - r.cross(Eigen::Map<Vector3d> (&(f_sp[3]))));
 
@@ -167,6 +181,13 @@ struct RBDL_DLLAPI SpatialTransform {
 				E(0,0) * f_sp[3] + E(0,1) * f_sp[4] + E(0,2) * f_sp[5],
 				E(1,0) * f_sp[3] + E(1,1) * f_sp[4] + E(1,2) * f_sp[5],
 				E(2,0) * f_sp[3] + E(2,1) * f_sp[4] + E(2,2) * f_sp[5]
+				);
+	}
+
+	SpatialTransform inverse() const {
+		return SpatialTransform (
+				E.transpose(),
+				- E * r
 				);
 	}
 
@@ -359,30 +380,6 @@ inline SpatialVector crossf (const SpatialVector &v1, const SpatialVector &v2) {
 			+ v1[2] * v2[3] - v1[0] * v2[5],
 			- v1[1] * v2[3] + v1[0] * v2[4]
 			);
-}
-
-inline SpatialMatrix spatial_adjoint(const SpatialMatrix &m) {
-	SpatialMatrix res (m);
-	res.block<3,3>(3,0) = m.block<3,3>(0,3);
-	res.block<3,3>(0,3) = m.block<3,3>(3,0);
-	return res;
-}
-
-inline SpatialMatrix spatial_inverse(const SpatialMatrix &m) {
-	SpatialMatrix res(m);
-	res.block<3,3>(0,0) = m.block<3,3>(0,0).transpose();
-	res.block<3,3>(3,0) = m.block<3,3>(3,0).transpose();
-	res.block<3,3>(0,3) = m.block<3,3>(0,3).transpose();
-	res.block<3,3>(3,3) = m.block<3,3>(3,3).transpose();
-	return res;
-}
-
-inline Matrix3d get_rotation (const SpatialMatrix &m) {
-	return m.block<3,3>(0,0);
-}
-
-inline Vector3d get_translation (const SpatialMatrix &m) {
-	return Vector3d (-m(4,2), m(3,2), -m(3,1));
 }
 
 } /* Math */

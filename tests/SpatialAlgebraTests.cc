@@ -13,6 +13,23 @@ using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 
+inline SpatialMatrix spatial_adjoint_helper(const SpatialMatrix &m) {
+	SpatialMatrix res (m);
+	res.block<3,3>(3,0) = m.block<3,3>(0,3);
+	res.block<3,3>(0,3) = m.block<3,3>(3,0);
+	return res;
+}
+
+inline SpatialMatrix spatial_inverse_helper(const SpatialMatrix &m) {
+	SpatialMatrix res(m);
+	res.block<3,3>(0,0) = m.block<3,3>(0,0).transpose();
+	res.block<3,3>(3,0) = m.block<3,3>(3,0).transpose();
+	res.block<3,3>(0,3) = m.block<3,3>(0,3).transpose();
+	res.block<3,3>(3,3) = m.block<3,3>(3,3).transpose();
+	return res;
+}
+
+
 /// \brief Checks the multiplication of a SpatialMatrix with a SpatialVector
 TEST(TestSpatialMatrixTimesSpatialVector) {
 	SpatialMatrix s_matrix (
@@ -116,7 +133,7 @@ TEST(TestSpatialMatrixTransformAdjoint) {
 			31., 32., 33., 34., 35., 36.
 			);
 	
-	SpatialMatrix result = spatial_adjoint(s_matrix);
+	SpatialMatrix result = spatial_adjoint_helper(s_matrix);
 
 	SpatialMatrix test_result_matrix (
 			 1.,  2.,  3., 19., 20., 21.,
@@ -148,46 +165,7 @@ TEST(TestSpatialMatrixInverse) {
 			2, 5, 8, 2, 5, 8
 			);
 			
-	CHECK_EQUAL (test_inv, spatial_inverse(s_matrix));
-}
-
-TEST(TestSpatialMatrixGetRotation) {
-	SpatialMatrix spatial_transform (
-			 1.,  2.,  3.,  0.,  0.,  0.,
-			 4.,  5.,  6.,  0.,  0.,  0.,
-			 7.,  8.,  9.,  0.,  0.,  0.,
-			 0.,  0.,  0.,  0.,  0.,  0.,
-			 0.,  0.,  0.,  0.,  0.,  0.,
-			 0.,  0.,  0.,  0.,  0.,  0.
-			);
-
-//	Matrix3d rotation = spatial_transform.block<3,3>(0,0);
-	Matrix3d rotation = get_rotation (spatial_transform);
-	Matrix3d test_result (
-			1., 2., 3.,
-			4., 5., 6.,
-			7., 8., 9.
-			);
-
-	CHECK_EQUAL(test_result, rotation);
-}
-
-TEST(TestSpatialMatrixGetTranslation) {
-	SpatialMatrix spatial_transform (
-			 0.,  0.,  0.,  0.,  0.,  0.,
-			 0.,  0.,  0.,  0.,  0.,  0.,
-			 0.,  0.,  0.,  0.,  0.,  0.,
-			 0., -3.,  2.,  0.,  0.,  0.,
-			 0.,  0., -1.,  0.,  0.,  0.,
-			 0.,  0.,  0.,  0.,  0.,  0.
-			);
-
-	Vector3d translation = get_translation(spatial_transform);
-	Vector3d test_result (
-			1., 2., 3.
-			);
-
-	CHECK_EQUAL( test_result, translation);
+	CHECK_EQUAL (test_inv, spatial_inverse_helper(s_matrix));
 }
 
 TEST(TestSpatialVectorCross) {
@@ -328,10 +306,10 @@ TEST(TestSpatialTransformToMatrixAdjoint) {
 	X_st.E = X_matrix.block<3,3>(0,0);
 	X_st.r = trans;
 
-//	SpatialMatrix X_diff = X_st.toMatrixAdjoint() - spatial_adjoint(X_matrix);
+//	SpatialMatrix X_diff = X_st.toMatrixAdjoint() - spatial_adjoint_helper(X_matrix);
 //	cout << "Error: " << endl << X_diff << endl;
 
-	CHECK_ARRAY_CLOSE (spatial_adjoint(X_matrix).data(), X_st.toMatrixAdjoint().data(), 36, TEST_PREC);
+	CHECK_ARRAY_CLOSE (spatial_adjoint_helper(X_matrix).data(), X_st.toMatrixAdjoint().data(), 36, TEST_PREC);
 }
 
 TEST(TestSpatialTransformToMatrixTranspose) {
