@@ -483,7 +483,7 @@ TEST(TestSpatialRigidBodyInertiaCreateFromMatrix) {
 			);
 	Body body(mass, com , inertia);
 
-	SpatialMatrix spatial_inertia = body.mSpatialInertia;
+	SpatialMatrix spatial_inertia = body.mSpatialInertia.toMatrix();
 
 	SpatialRigidBodyInertia rbi;
 	rbi.createFromMatrix (spatial_inertia);
@@ -493,6 +493,23 @@ TEST(TestSpatialRigidBodyInertiaCreateFromMatrix) {
 	CHECK_ARRAY_EQUAL (inertia.data(), rbi.I.data(), 9);
 }
 
+TEST(TestSpatialTransformInverseOfSpatialInertia) {
+	SpatialMatrix s_matrix (
+			1., 0., 0., 0., 0., 7.,
+			0., 2., 0., 0., 8., 0.,
+			0., 0., 3., 9., 0., 0.,
+			0., 0., 6., 4., 0., 0.,
+			0., 5., 0., 0., 5., 0.,
+			4., 0., 0., 0., 0., 6.
+			);
+	SpatialInertia si (SpatialInertia::fromMatrix(s_matrix));
+	SpatialTransform X = Xrotz (0.2) * Xroty(0.6) * Xtrans(Vector3d (0.2, 0.5, 0.6));
+
+	SpatialInertia transformed = X.apply(si);
+	SpatialMatrix reference = spatial_adjoint_helper (X.toMatrix()) * si.toMatrix() * spatial_inverse_helper (X.toMatrix());
+
+	cout << reference - transformed.toMatrix() << endl;
+}
 #ifdef USE_SLOW_SPATIAL_ALGEBRA
 TEST(TestSpatialLinSolve) {
 	SpatialVector b (1, 2, 0, 1, 1, 1);

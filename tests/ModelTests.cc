@@ -57,7 +57,7 @@ TEST_FIXTURE(ModelFixture, TestInit) {
 
 TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	Body body;
-	Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	unsigned int body_id = 0;
 	body_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
@@ -81,7 +81,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2u, model->u.size());
 	CHECK_EQUAL (2u, model->Ic.size());
 
-	SpatialVector spatial_zero;
+	SpatialMotion spatial_zero;
 	spatial_zero.setZero();
 	
 	CHECK_EQUAL (2u, model->X_lambda.size());
@@ -111,7 +111,7 @@ TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
 	CHECK_EQUAL (7u, model->d.size());
 	CHECK_EQUAL (7u, model->u.size());
 
-	SpatialVector spatial_zero;
+	SpatialMotion spatial_zero;
 	spatial_zero.setZero();
 	
 	CHECK_EQUAL (7u, model->X_lambda.size());
@@ -131,11 +131,11 @@ TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
  */
 TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
 	Body body;
-	Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
 
-	SpatialVector spatial_joint_axis(0., 0., 1., 0., 0., 0.);
+	SpatialMotion spatial_joint_axis(0., 0., 1., 0., 0., 0.);
 	CHECK_EQUAL (spatial_joint_axis, joint.mJointAxes[0]);
 
 	// \Todo: Dynamic properties
@@ -143,7 +143,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
 
 TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
 	Body body;
-	Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body, "mybody"); 
 
@@ -155,7 +155,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
 
 TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	Body body;
-	Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint, body);
 
@@ -163,9 +163,9 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	VectorNd QDot = VectorNd::Zero (model->q_size);
 
 	SpatialTransform X_j;
-	SpatialVector S;
-	SpatialVector v_j;
-	SpatialVector c;
+	SpatialMotion S;
+	SpatialMotion v_j;
+	SpatialMotion c;
 
 	QDot[0] = 1.;
 	jcalc (*model, 1, X_j, v_j, c, Q, QDot);
@@ -178,15 +178,15 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 			0.,  0.,  0.,  0.,  1.,  0.,
 			0.,  0.,  0.,  0.,  0.,  1.
 			);
-	SpatialVector test_vector (
+	SpatialMotion test_vector (
 			0., 0., 1., 0., 0., 0.
 			);
-	SpatialVector test_joint_axis (
+	SpatialMotion test_joint_axis (
 			0., 0., 1., 0., 0., 0.
 			);
 
 	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), 1.0e-16));
-	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, 1.0e-16));
+	CHECK (SpatialVectorCompareEpsilon (test_vector.toVector(), v_j.toVector(), 1.0e-16));
 	CHECK_EQUAL (test_joint_axis, model->S[1]);
 
 	Q[0] = M_PI * 0.5;
@@ -204,7 +204,7 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 			);
 
 	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), TEST_PREC));
-	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, TEST_PREC));
+	CHECK (SpatialVectorCompareEpsilon (test_vector.toVector(), v_j.toVector(), TEST_PREC));
 	CHECK_EQUAL (test_joint_axis, model->S[1]);
 }
 
@@ -245,8 +245,8 @@ TEST ( Model2DoFJoint ) {
 	// the standard modeling using a null body
 	Body null_body;
 	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
-	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_x ( SpatialMotion (1., 0., 0., 0., 0., 0.));
 
 	Model model_std;
 	model_std.gravity = Vector3d (0., -9.81, 0.);
@@ -256,8 +256,8 @@ TEST ( Model2DoFJoint ) {
 
 	// using a model with a 2 DoF joint
 	Joint joint_rot_zx (
-		SpatialVector (0., 0., 1., 0., 0., 0.),
-		SpatialVector (1., 0., 0., 0., 0., 0.)
+		SpatialMotion (0., 0., 1., 0., 0., 0.),
+		SpatialMotion (1., 0., 0., 0., 0., 0.)
 		);
 
 	Model model_2;
@@ -283,9 +283,9 @@ TEST ( Model3DoFJoint ) {
 	Body null_body;
 	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
-	Joint joint_rot_y ( SpatialVector (0., 1., 0., 0., 0., 0.));
-	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_y ( SpatialMotion (0., 1., 0., 0., 0., 0.));
+	Joint joint_rot_x ( SpatialMotion (1., 0., 0., 0., 0., 0.));
 
 	Model model_std;
 	model_std.gravity = Vector3d (0., -9.81, 0.);
@@ -304,9 +304,9 @@ TEST ( Model3DoFJoint ) {
 
 	// using a model with a 2 DoF joint
 	Joint joint_rot_zyx (
-		SpatialVector (0., 0., 1., 0., 0., 0.),
-		SpatialVector (0., 1., 0., 0., 0., 0.),
-		SpatialVector (1., 0., 0., 0., 0., 0.)
+		SpatialMotion (0., 0., 1., 0., 0., 0.),
+		SpatialMotion (0., 1., 0., 0., 0., 0.),
+		SpatialMotion (1., 0., 0., 0., 0., 0.)
 		);
 
 	Model model_2;
@@ -335,9 +335,9 @@ TEST ( Model6DoFJoint ) {
 	Body null_body;
 	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
-	Joint joint_rot_y ( SpatialVector (0., 1., 0., 0., 0., 0.));
-	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_y ( SpatialMotion (0., 1., 0., 0., 0., 0.));
+	Joint joint_rot_x ( SpatialMotion (1., 0., 0., 0., 0., 0.));
 
 	Model model_std;
 	model_std.gravity = Vector3d (0., -9.81, 0.);
@@ -354,18 +354,18 @@ TEST ( Model6DoFJoint ) {
 
 	// using a model with a 2 DoF joint
 	Joint joint_floating_base (
-		SpatialVector (0., 0., 0., 1., 0., 0.),
-		SpatialVector (0., 0., 0., 0., 1., 0.),
-		SpatialVector (0., 0., 0., 0., 0., 1.),
-		SpatialVector (0., 0., 1., 0., 0., 0.),
-		SpatialVector (0., 1., 0., 0., 0., 0.),
-		SpatialVector (1., 0., 0., 0., 0., 0.)
+		SpatialMotion (0., 0., 0., 1., 0., 0.),
+		SpatialMotion (0., 0., 0., 0., 1., 0.),
+		SpatialMotion (0., 0., 0., 0., 0., 1.),
+		SpatialMotion (0., 0., 1., 0., 0., 0.),
+		SpatialMotion (0., 1., 0., 0., 0., 0.),
+		SpatialMotion (1., 0., 0., 0., 0., 0.)
 		);
 
 	Joint joint_rot_zyx (
-		SpatialVector (0., 0., 1., 0., 0., 0.),
-		SpatialVector (0., 1., 0., 0., 0., 0.),
-		SpatialVector (1., 0., 0., 0., 0., 0.)
+		SpatialMotion (0., 0., 1., 0., 0., 0.),
+		SpatialMotion (0., 1., 0., 0., 0., 0.),
+		SpatialMotion (1., 0., 0., 0., 0., 0.)
 		);
 
 	Model model_2;
@@ -397,7 +397,7 @@ TEST ( ModelFixedJointQueryBodyId ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
@@ -417,7 +417,7 @@ TEST ( ModelAppendToFixedBody ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
@@ -444,7 +444,7 @@ TEST ( ModelAppendFixedToFixedBody ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(fixed_displacement), Joint(JointTypeFixed), fixed_body, "fixed_body");
@@ -474,7 +474,7 @@ TEST ( ModelFixedJointRotationOrderTranslationRotation ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	SpatialTransform trans_x = Xtrans (Vector3d (1., 0., 0.));
 	SpatialTransform rot_z = Xrotz (45. * M_PI / 180.);
@@ -500,7 +500,7 @@ TEST ( ModelFixedJointRotationOrderRotationTranslation ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	SpatialTransform rot_z = Xrotz (45. * M_PI / 180.);
 	SpatialTransform trans_x = Xtrans (Vector3d (1., 0., 0.));
@@ -523,7 +523,7 @@ TEST ( ModelGetBodyName ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");

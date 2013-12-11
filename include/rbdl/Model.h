@@ -157,9 +157,9 @@ struct RBDL_DLLAPI Model {
 
 	// State information
 	/// \brief The spatial velocity of the bodies
-	std::vector<Math::SpatialVector> v;
+	std::vector<Math::SpatialMotion> v;
 	/// \brief The spatial acceleration of the bodies
-	std::vector<Math::SpatialVector> a;
+	std::vector<Math::SpatialMotion> a;
 
 	////////////////////////////////////
 	// Joints
@@ -168,7 +168,7 @@ struct RBDL_DLLAPI Model {
 	
 	std::vector<Joint> mJoints;
 	/// \brief The joint axis for joint i
-	std::vector<Math::SpatialVector> S;
+	std::vector<Math::SpatialMotion> S;
 	/// \brief Transformations from the parent body to the frame of the joint
 	std::vector<Math::SpatialTransform> X_T;
 	/// \brief The number of fixed joints that have been declared before each joint.
@@ -187,19 +187,19 @@ struct RBDL_DLLAPI Model {
 	// Dynamics variables
 
 	/// \brief The velocity dependent spatial acceleration
-	std::vector<Math::SpatialVector> c;
+	std::vector<Math::SpatialMotion> c;
 	/// \brief The spatial inertia of the bodies 
-	std::vector<Math::SpatialMatrix> IA;
+	std::vector<Math::SpatialInertia> IA;
 	/// \brief The spatial bias force
-	std::vector<Math::SpatialVector> pA;
+	std::vector<Math::SpatialForce> pA;
 	/// \brief Temporary variable U_i (RBDA p. 130)
-	std::vector<Math::SpatialVector> U;
+	std::vector<Math::SpatialForce> U;
 	/// \brief Temporary variable D_i (RBDA p. 130)
 	Math::VectorNd d;
 	/// \brief Temporary variable u (RBDA p. 130)
 	Math::VectorNd u;
 	/// \brief Internal forces on the body (used only InverseDynamics())
-	std::vector<Math::SpatialVector> f;
+	std::vector<Math::SpatialForce> f;
 	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
 	std::vector<Math::SpatialRigidBodyInertia> Ic;
 

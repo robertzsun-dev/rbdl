@@ -29,7 +29,7 @@ struct Model;
  * models.
  *
  * Joints are defined by their motion subspace. For each degree of freedom
- * a one dimensional motion subspace is specified as a Math::SpatialVector.
+ * a one dimensional motion subspace is specified as a Math::SpatialMotion.
  * This vector follows the following convention: \f[ (r_x, r_y, r_z, t_x,
  * t_y, t_z) \f]
  *
@@ -39,9 +39,9 @@ struct Model;
  * used:
  
  * \code Joint planar_joint = Joint (
- *     Math::SpatialVector (0., 0., 0., 1.,  0., 0.),
- *     Math::SpatialVector (0., 0., 0., 0., 1., 0.),
- *     Math::SpatialVector (0., 0., 1., 0., 0., 0.)
+ *     Math::SpatialMotion (0., 0., 0., 1.,  0., 0.),
+ *     Math::SpatialMotion (0., 0., 0., 0., 1., 0.),
+ *     Math::SpatialMotion (0., 0., 1., 0., 0., 0.)
  *     );
  * \endcode
 
@@ -160,19 +160,19 @@ struct RBDL_DLLAPI Joint {
 			if (type == JointTypeSpherical) {
 				mDoFCount = 3;
 
-				mJointAxes = new Math::SpatialVector[mDoFCount];
+				mJointAxes = new Math::SpatialMotion [mDoFCount];
 
-				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
-				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
-				mJointAxes[2] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+				mJointAxes[0] = Math::SpatialMotion (0., 0., 1., 0., 0., 0.);
+				mJointAxes[1] = Math::SpatialMotion (0., 1., 0., 0., 0., 0.);
+				mJointAxes[2] = Math::SpatialMotion (1., 0., 0., 0., 0., 0.);
 			} else if (type == JointTypeSphericalZYX) {
 				mDoFCount = 3;
 
-				mJointAxes = new Math::SpatialVector[mDoFCount];
+				mJointAxes = new Math::SpatialMotion[mDoFCount];
 
-				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
-				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
-				mJointAxes[2] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+				mJointAxes[0] = Math::SpatialMotion (0., 0., 1., 0., 0., 0.);
+				mJointAxes[1] = Math::SpatialMotion (0., 1., 0., 0., 0., 0.);
+				mJointAxes[2] = Math::SpatialMotion (1., 0., 0., 0., 0., 0.);
 			}else if (type != JointTypeFixed) {
 				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
 				assert (0);
@@ -183,7 +183,7 @@ struct RBDL_DLLAPI Joint {
 		mJointType (joint.mJointType),
 		mDoFCount (joint.mDoFCount),
 		q_index (joint.q_index) {
-			mJointAxes = new Math::SpatialVector[mDoFCount];
+			mJointAxes = new Math::SpatialMotion[mDoFCount];
 
 			for (unsigned int i = 0; i < mDoFCount; i++)
 				mJointAxes[i] = joint.mJointAxes[i];
@@ -197,7 +197,7 @@ struct RBDL_DLLAPI Joint {
 			mJointType = joint.mJointType;
 			mDoFCount = joint.mDoFCount;
 
-			mJointAxes = new Math::SpatialVector[mDoFCount];
+			mJointAxes = new Math::SpatialMotion[mDoFCount];
 
 			for (unsigned int i = 0; i < mDoFCount; i++)
 				mJointAxes[i] = joint.mJointAxes[i];
@@ -228,7 +228,7 @@ struct RBDL_DLLAPI Joint {
 			const Math::Vector3d &joint_axis
 			) {
 		mDoFCount = 1;
-		mJointAxes = new Math::SpatialVector[mDoFCount];
+		mJointAxes = new Math::SpatialMotion[mDoFCount];
 
 		// Some assertions, as we concentrate on simple cases
 	
@@ -269,12 +269,12 @@ struct RBDL_DLLAPI Joint {
 	 * \param axis_0 Motion subspace for axis 0
 	 */
 	Joint (
-			const Math::SpatialVector &axis_0
+			const Math::SpatialMotion &axis_0
 			) {
 		mJointType = JointType1DoF;
 		mDoFCount = 1;
 
-		mJointAxes = new Math::SpatialVector[mDoFCount];
+		mJointAxes = new Math::SpatialMotion[mDoFCount];
 		mJointAxes[0] = axis_0;
 
 		validate_spatial_axis (mJointAxes[0]);
@@ -291,13 +291,13 @@ struct RBDL_DLLAPI Joint {
 	 * \param axis_1 Motion subspace for axis 1
 	 */
 	Joint (
-			const Math::SpatialVector &axis_0,
-			const Math::SpatialVector &axis_1
+			const Math::SpatialMotion &axis_0,
+			const Math::SpatialMotion &axis_1
 			) {
 		mJointType = JointType2DoF;
 		mDoFCount = 2;
 
-		mJointAxes = new Math::SpatialVector[mDoFCount];
+		mJointAxes = new Math::SpatialMotion[mDoFCount];
 		mJointAxes[0] = axis_0;
 		mJointAxes[1] = axis_1;
 
@@ -317,14 +317,14 @@ struct RBDL_DLLAPI Joint {
 	 * \param axis_2 Motion subspace for axis 2
 	 */
 	Joint (
-			const Math::SpatialVector &axis_0,
-			const Math::SpatialVector &axis_1,
-			const Math::SpatialVector &axis_2
+			const Math::SpatialMotion &axis_0,
+			const Math::SpatialMotion &axis_1,
+			const Math::SpatialMotion &axis_2
 			) {
 		mJointType = JointType3DoF;
 		mDoFCount = 3;
 
-		mJointAxes = new Math::SpatialVector[mDoFCount];
+		mJointAxes = new Math::SpatialMotion[mDoFCount];
 
 		mJointAxes[0] = axis_0;
 		mJointAxes[1] = axis_1;
@@ -348,15 +348,15 @@ struct RBDL_DLLAPI Joint {
 	 * \param axis_3 Motion subspace for axis 3
 	 */
 	Joint (
-			const Math::SpatialVector &axis_0,
-			const Math::SpatialVector &axis_1,
-			const Math::SpatialVector &axis_2,
-			const Math::SpatialVector &axis_3
+			const Math::SpatialMotion &axis_0,
+			const Math::SpatialMotion &axis_1,
+			const Math::SpatialMotion &axis_2,
+			const Math::SpatialMotion &axis_3
 			) {
 		mJointType = JointType4DoF;
 		mDoFCount = 4;
 
-		mJointAxes = new Math::SpatialVector[mDoFCount];
+		mJointAxes = new Math::SpatialMotion[mDoFCount];
 
 		mJointAxes[0] = axis_0;
 		mJointAxes[1] = axis_1;
@@ -383,16 +383,16 @@ struct RBDL_DLLAPI Joint {
 	 * \param axis_4 Motion subspace for axis 4
 	 */
 	Joint (
-			const Math::SpatialVector &axis_0,
-			const Math::SpatialVector &axis_1,
-			const Math::SpatialVector &axis_2,
-			const Math::SpatialVector &axis_3,
-			const Math::SpatialVector &axis_4
+			const Math::SpatialMotion &axis_0,
+			const Math::SpatialMotion &axis_1,
+			const Math::SpatialMotion &axis_2,
+			const Math::SpatialMotion &axis_3,
+			const Math::SpatialMotion &axis_4
 			) {
 		mJointType = JointType5DoF;
 		mDoFCount = 5;
 
-		mJointAxes = new Math::SpatialVector[mDoFCount];
+		mJointAxes = new Math::SpatialMotion[mDoFCount];
 
 		mJointAxes[0] = axis_0;
 		mJointAxes[1] = axis_1;
@@ -422,17 +422,17 @@ struct RBDL_DLLAPI Joint {
 	 * \param axis_5 Motion subspace for axis 5
 	 */
 	Joint (
-			const Math::SpatialVector &axis_0,
-			const Math::SpatialVector &axis_1,
-			const Math::SpatialVector &axis_2,
-			const Math::SpatialVector &axis_3,
-			const Math::SpatialVector &axis_4,
-			const Math::SpatialVector &axis_5
+			const Math::SpatialMotion &axis_0,
+			const Math::SpatialMotion &axis_1,
+			const Math::SpatialMotion &axis_2,
+			const Math::SpatialMotion &axis_3,
+			const Math::SpatialMotion &axis_4,
+			const Math::SpatialMotion &axis_5
 			) {
 		mJointType = JointType6DoF;
 		mDoFCount = 6;
 
-		mJointAxes = new Math::SpatialVector[mDoFCount];
+		mJointAxes = new Math::SpatialMotion[mDoFCount];
 
 		mJointAxes[0] = axis_0;
 		mJointAxes[1] = axis_1;
@@ -454,7 +454,7 @@ struct RBDL_DLLAPI Joint {
 	 * This function is mainly used to print out warnings when specifying an
 	 * axis that might not be intended.
 	 */
-	bool validate_spatial_axis (Math::SpatialVector &axis) {
+	bool validate_spatial_axis (Math::SpatialMotion &axis) {
 		if (fabs(axis.norm() - 1.0) > 1.0e-8) {
 			std::cerr << "Warning: joint axis is not unit!" << std::endl;
 		}
@@ -462,8 +462,8 @@ struct RBDL_DLLAPI Joint {
 		bool axis_rotational = false;
 		bool axis_translational = false;
 
-		Math::Vector3d rotation (axis[0], axis[1], axis[2]);
-		Math::Vector3d translation (axis[3], axis[4], axis[5]);
+		Math::Vector3d rotation (axis.w);
+		Math::Vector3d translation (axis.v);
 
 		if (fabs(translation.norm()) < 1.0e-8)
 			axis_rotational = true;
@@ -475,7 +475,7 @@ struct RBDL_DLLAPI Joint {
 	}
 
 	/// \brief The spatial axis of the joint
-	Math::SpatialVector* mJointAxes;
+	Math::SpatialMotion* mJointAxes;
 	/// \brief Type of joint (rotational or prismatic)
 	JointType mJointType;
 	unsigned int mDoFCount;
@@ -500,8 +500,8 @@ void jcalc (
 		Model &model,
 		unsigned int joint_id,
 		Math::SpatialTransform &XJ,
-		Math::SpatialVector &v_J,
-		Math::SpatialVector &c_J,
+		Math::SpatialMotion &v_J,
+		Math::SpatialMotion &c_J,
 		const Math::VectorNd &q,
 		const Math::VectorNd &qdot
 		);

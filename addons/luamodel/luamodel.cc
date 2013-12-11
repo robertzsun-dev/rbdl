@@ -44,8 +44,8 @@ template<> Vector3d LuaTableNode::getDefault<Vector3d>(const Vector3d &default_v
 	return result;
 }
 
-template<> SpatialVector LuaTableNode::getDefault<SpatialVector>(const SpatialVector &default_value) {
-	SpatialVector result = default_value;
+template<> SpatialMotion LuaTableNode::getDefault<SpatialMotion>(const SpatialMotion &default_value) {
+	SpatialMotion result = default_value;
 
 	if (stackQueryValue()) {
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
@@ -54,12 +54,9 @@ template<> SpatialVector LuaTableNode::getDefault<SpatialVector>(const SpatialVe
 			cerr << "LuaModel Error: invalid 6d vector!" << endl;
 			abort();
 		}
-		result[0] = vector_table[1];
-		result[1] = vector_table[2];
-		result[2] = vector_table[3];
-		result[3] = vector_table[4];
-		result[4] = vector_table[5];
-		result[5] = vector_table[6];
+
+		result.w = Vector3d (vector_table[1], vector_table[2], vector_table[3]);
+		result.v = Vector3d (vector_table[4], vector_table[5], vector_table[6]);
 	}
 
 	stackRestore();
@@ -141,41 +138,41 @@ template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
 		switch (joint_dofs) {
 			case 0: result = Joint(JointTypeFixed);
 							break;
-			case 1: result = Joint(vector_table[1].get<SpatialVector>());
+			case 1: result = Joint(vector_table[1].get<SpatialMotion>());
 							break;
 			case 2: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>()
+									vector_table[1].get<SpatialMotion>(),
+									vector_table[2].get<SpatialMotion>()
 									);
 							break;
 			case 3: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>(),
-									vector_table[3].get<SpatialVector>()
+									vector_table[1].get<SpatialMotion>(),
+									vector_table[2].get<SpatialMotion>(),
+									vector_table[3].get<SpatialMotion>()
 									);
 							break;
 			case 4: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>(),
-									vector_table[3].get<SpatialVector>(),
-									vector_table[4].get<SpatialVector>()
+									vector_table[1].get<SpatialMotion>(),
+									vector_table[2].get<SpatialMotion>(),
+									vector_table[3].get<SpatialMotion>(),
+									vector_table[4].get<SpatialMotion>()
 									);
 							break;
 			case 5: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>(),
-									vector_table[3].get<SpatialVector>(),
-									vector_table[4].get<SpatialVector>(),
-									vector_table[5].get<SpatialVector>()
+									vector_table[1].get<SpatialMotion>(),
+									vector_table[2].get<SpatialMotion>(),
+									vector_table[3].get<SpatialMotion>(),
+									vector_table[4].get<SpatialMotion>(),
+									vector_table[5].get<SpatialMotion>()
 									);
 							break;
 			case 6: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>(),
-									vector_table[3].get<SpatialVector>(),
-									vector_table[4].get<SpatialVector>(),
-									vector_table[5].get<SpatialVector>(),
-									vector_table[6].get<SpatialVector>()
+									vector_table[1].get<SpatialMotion>(),
+									vector_table[2].get<SpatialMotion>(),
+									vector_table[3].get<SpatialMotion>(),
+									vector_table[4].get<SpatialMotion>(),
+									vector_table[5].get<SpatialMotion>(),
+									vector_table[6].get<SpatialMotion>()
 									);
 							break;
 			default:
@@ -258,10 +255,10 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 			cout << "  parent_id  : " << parent_id << endl;
 			cout << "  joint dofs : " << joint.mDoFCount << endl;
 			for (unsigned int j = 0; j < joint.mDoFCount; j++) {
-				cout << "    " << j << ": " << joint.mJointAxes[j].transpose() << endl;
+				cout << "    " << j << ": " << joint.mJointAxes[j] << endl;
 			}
 			cout << "  joint_frame: " << joint_frame << endl;
-			cout << "  body inertia: " << endl << body.mSpatialInertia << endl;
+			cout << "  body inertia: " << endl << body.mSpatialInertia.toMatrix() << endl;
 		}
 	}
 

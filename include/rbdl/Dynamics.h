@@ -51,7 +51,7 @@ void ForwardDynamics (
 		const Math::VectorNd &QDot,
 		const Math::VectorNd &Tau,
 		Math::VectorNd &QDDot,
-		std::vector<Math::SpatialVector> *f_ext = NULL
+		std::vector<Math::SpatialForce> *f_ext = NULL
 		);
 
 /** \brief Computes forward dynamics by building and solving the full Lagrangian equation
@@ -78,7 +78,7 @@ void ForwardDynamicsLagrangian (
 		const Math::VectorNd &Tau,
 		Math::VectorNd &QDDot,
 		Math::LinearSolver linear_solver = Math::LinearSolverColPivHouseholderQR,
-		std::vector<Math::SpatialVector> *f_ext = NULL
+		std::vector<Math::SpatialForce> *f_ext = NULL
 		);
 
 /** \brief Computes inverse dynamics with the Newton-Euler Algorithm
@@ -101,7 +101,7 @@ void InverseDynamics (
 		const Math::VectorNd &QDot,
 		const Math::VectorNd &QDDot,
 		Math::VectorNd &Tau,
-		std::vector<Math::SpatialVector> *f_ext = NULL
+		std::vector<Math::SpatialForce> *f_ext = NULL
 		);
 
 /** \brief Computes the joint space inertia matrix by using the Composite Rigid Body Algorithm

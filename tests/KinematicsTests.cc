@@ -37,22 +37,22 @@ struct KinematicsFixture {
 		 */
 
 		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-		joint_a = Joint( SpatialVector (0., 0., 1., 0., 0., 0.));
+		joint_a = Joint( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 		body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 
 		body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-		joint_b = Joint ( SpatialVector (0., 1., 0., 0., 0., 0.));
+		joint_b = Joint ( SpatialMotion (0., 1., 0., 0., 0., 0.));
 
 		body_b_id = model->AddBody(body_a_id, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
-		joint_c = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
+		joint_c = Joint ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 
 		body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
 		body_d = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-		joint_c = Joint ( SpatialVector (1., 0., 0., 0., 0., 0.));
+		joint_c = Joint ( SpatialMotion (1., 0., 0., 0., 0., 0.));
 
 		body_d_id = model->AddBody(body_c_id, Xtrans(Vector3d(0., 0., -1.)), joint_c, body_d);
 
@@ -104,9 +104,9 @@ struct KinematicsFixture6DoF {
 				Vector3d (1., 1., 1.)
 				);
 		joint_rotzyx = Joint (
-				SpatialVector (0., 0., 1., 0., 0., 0.),
-				SpatialVector (0., 1., 0., 0., 0., 0.),
-				SpatialVector (1., 0., 0., 0., 0., 0.)
+				SpatialMotion (0., 0., 1., 0., 0., 0.),
+				SpatialMotion (0., 1., 0., 0., 0., 0.),
+				SpatialMotion (1., 0., 0., 0., 0., 0.)
 				);
 		base_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_rotzyx, base);
 
@@ -441,7 +441,7 @@ TEST ( FixedJointBodyCalcBodyToBase ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body);
 
@@ -459,7 +459,7 @@ TEST ( FixedJointBodyCalcBodyToBaseRotated ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector(0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion(0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(1., 0., 0.)), Joint(JointTypeFixed), fixed_body);
 
@@ -481,7 +481,7 @@ TEST ( FixedJointBodyCalcBaseToBody ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body);
 
@@ -499,7 +499,7 @@ TEST ( FixedJointBodyCalcBaseToBodyRotated ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(1., 0., 0.)), Joint(JointTypeFixed), fixed_body);
 
@@ -521,7 +521,7 @@ TEST ( FixedJointBodyWorldOrientation ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 
 	SpatialTransform transform = Xrotz(0.25) * Xtrans (Vector3d (1., 2., 3.));
@@ -543,7 +543,7 @@ TEST ( FixedJointCalcPointJacobian ) {
 
 	Model model;
 
-	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_z ( SpatialMotion (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 
 	SpatialTransform transform = Xrotz(0.25) * Xtrans (Vector3d (1., 2., 3.));

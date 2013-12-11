@@ -100,27 +100,27 @@ void generate_human36model (RigidBodyDynamics::Model *model) {
 	Body head_body = create_body (SegmentHead);
 
 	Joint free_flyer (
-		SpatialVector (0., 0., 0., 1., 0., 0.),
-		SpatialVector (0., 0., 0., 0., 1., 0.),
-		SpatialVector (0., 0., 0., 0., 0., 1.),
-		SpatialVector (0., 1., 0., 0., 0., 0.),
-		SpatialVector (0., 0., 1., 0., 0., 0.),
-		SpatialVector (1., 0., 0., 0., 0., 0.)
+		SpatialMotion (0., 0., 0., 1., 0., 0.),
+		SpatialMotion (0., 0., 0., 0., 1., 0.),
+		SpatialMotion (0., 0., 0., 0., 0., 1.),
+		SpatialMotion (0., 1., 0., 0., 0., 0.),
+		SpatialMotion (0., 0., 1., 0., 0., 0.),
+		SpatialMotion (1., 0., 0., 0., 0., 0.)
 		);
 
 	Joint rot_yzx (
-			SpatialVector (0., 1., 0., 0., 0., 0.),
-			SpatialVector (0., 0., 1., 0., 0., 0.),
-			SpatialVector (1., 0., 0., 0., 0., 0.)
+			SpatialMotion (0., 1., 0., 0., 0., 0.),
+			SpatialMotion (0., 0., 1., 0., 0., 0.),
+			SpatialMotion (1., 0., 0., 0., 0., 0.)
 			);
 
 	Joint rot_yz (
-			SpatialVector (0., 1., 0., 0., 0., 0.),
-			SpatialVector (0., 0., 1., 0., 0., 0.)
+			SpatialMotion (0., 1., 0., 0., 0., 0.),
+			SpatialMotion (0., 0., 1., 0., 0., 0.)
 			);
 
 	Joint rot_y (
-			SpatialVector (0., 1., 0., 0., 0., 0.)
+			SpatialMotion (0., 1., 0., 0., 0., 0.)
 			);
 
 	Joint fixed (JointTypeFixed);

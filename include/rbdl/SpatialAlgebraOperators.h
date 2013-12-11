@@ -17,6 +17,209 @@ namespace Math {
 
 /** \brief Spatial algebra matrices, vectors, and operators. */
 
+struct RBDL_DLLAPI SpatialMotion;
+
+struct RBDL_DLLAPI SpatialForce {
+	Vector3d n;
+	Vector3d f;
+
+	SpatialForce () :
+		n (Vector3d::Zero()),
+		f (Vector3d::Zero()) {
+		}
+	SpatialForce(const Vector3d &n, const Vector3d &f) :
+		n(n), f(f) {}
+	SpatialForce(const double &n0, const double &n1, const double &n2,
+			const double &f0, const double &f1, const double &f2) :
+		n (Vector3d (n0, n1, n2)), f (Vector3d (f0, f1, f2)) {}
+
+	SpatialVector toVector() const {
+		return SpatialVector (
+				n[0], n[1], n[2],
+				f[0], f[1], f[2]
+				);
+	}
+	static SpatialForce fromVector (const SpatialVector &v) {
+		return SpatialForce (
+				Vector3d (v[0], v[1], v[2]),
+				Vector3d (v[3], v[4], v[5])
+				);
+	}
+
+	SpatialForce operator+ (const SpatialForce &sf) const {
+		return SpatialForce ( n + sf.n, f + sf.f);
+	}
+	void operator+= (const SpatialForce &sf) {
+		n += sf.n;
+		f += sf.f;
+	}
+	SpatialForce operator- (const SpatialForce &sf) const {
+		return SpatialForce ( n - sf.n, f - sf.f);
+	}
+	void operator-= (const SpatialForce &sf) {
+		n -= sf.n;
+		f -= sf.f;
+	}
+	SpatialForce operator-() const {
+		return SpatialForce (-n, -f);
+	}
+	SpatialForce operator* (const double d) const {
+		return SpatialForce ( n * d, f * d);
+	}
+	SpatialForce operator/ (const double d) const {
+		return SpatialForce ( n / d, f / d);
+	}
+	bool operator!= (const SpatialForce &sf) const {
+		return (n != sf.n || f != sf.f);
+	}
+	bool operator== (const SpatialForce &sf) const {
+		return (n == sf.n && f == sf.f);
+	}
+	inline double dot (const SpatialMotion &sm) const;
+
+	void setZero() {
+		n.setZero();
+		f.setZero();
+	}
+};
+
+struct RBDL_DLLAPI SpatialMotion {
+	Vector3d w;
+	Vector3d v;
+
+	SpatialMotion () :
+		w (Vector3d::Zero()),
+		v (Vector3d::Zero())
+	{}
+	SpatialMotion (const Vector3d &w, const Vector3d &v) :
+		w(w), v(v) {}
+	SpatialMotion(const double &w0, const double &w1, const double &w2,
+			const double &v0, const double &v1, const double &v2) :
+		w (Vector3d (w0, w1, w2)), v (Vector3d (v0, v1, v2)) {}
+
+	void set (const double &w0, const double &w1, const double &w2,
+			const double &v0, const double &v1, const double &v2) {
+		w = Vector3d (w0, w1, w2);
+		v = Vector3d (v0, v1, v2);
+	}
+
+	SpatialMotion cross (const SpatialMotion &m) const {
+		return SpatialMotion (
+				w.cross (m.w), 
+				w.cross (m.v) + v.cross (m.w)
+				);
+	}
+	SpatialForce crossf (const SpatialForce &f) const {
+		return SpatialForce (
+				w.cross(f.n) + v.cross (f.f),
+				w.cross(f.f)
+				);
+	}
+
+	SpatialMotion operator+ (const SpatialMotion &sm) const {
+		return SpatialMotion ( w + sm.w, v + sm.v);
+	}
+	SpatialMotion operator- (const SpatialMotion &sm) const {
+		return SpatialMotion ( w - sm.w, v - sm.v);
+	}
+	SpatialMotion operator* (const double d) const {
+		return SpatialMotion ( w * d, v * d);
+	}
+	SpatialMotion operator/ (const double d) const {
+		return SpatialMotion ( w / d, v / d);
+	}
+	SpatialVector toVector() const {
+		return SpatialVector (
+				w[0], w[1], w[2],
+				v[0], v[1], v[2]
+				);
+	}
+	bool operator!= (const SpatialMotion &sm) const {
+		return (w != sm.w || v != sm.v);
+	}
+	bool operator== (const SpatialMotion &sm) const {
+		return (w == sm.w && v == sm.v);
+	}
+
+	static SpatialMotion fromVector (const SpatialVector &v) {
+		return SpatialMotion (
+				Vector3d (v[0], v[1], v[2]),
+				Vector3d (v[3], v[4], v[5])
+				);
+	}
+	double dot (const SpatialForce &sf) const {
+		return w.dot(sf.n) + v.dot(sf.f);
+	}
+	double norm() const {
+		return toVector().norm();
+	}
+
+	void setZero() {
+		w.setZero();
+		v.setZero();
+	}
+};
+
+double SpatialForce::dot (const SpatialMotion &sm) const {
+		return n.dot (sm.w) + f.dot (sm.v);
+}
+
+struct RBDL_DLLAPI SpatialInertia {
+	Matrix3d I;
+	Matrix3d H;
+	Matrix3d M;
+
+	SpatialInertia () :
+		I (Matrix3d::Identity()),
+		H (Matrix3d::Zero()),
+		M (Matrix3d::Identity()) {
+		}
+
+	SpatialInertia (const Matrix3d &I, const Matrix3d &H, const Matrix3d &M) :
+		I(I), H(H), M(M) {}
+
+	static SpatialInertia fromMatrix(const SpatialMatrix &matrix) {
+		return SpatialInertia(
+				matrix.block<3,3>(0,0),
+				matrix.block<3,3>(0,3),
+				matrix.block<3,3>(3,3)
+				);
+	}
+	SpatialForce operator* (const SpatialMotion &sm) const {
+		return SpatialForce (
+				I * sm.w + H * sm.v,
+				H.transpose() * sm.w + M * sm.v
+				);
+	}
+	SpatialInertia operator+ (const SpatialInertia &si) const {
+		return SpatialInertia (
+				I + si.I,
+				H + si.H,
+				M + si.M
+				);
+	}
+	void operator+= (const SpatialInertia &si) {
+		I += si.I;
+		H += si.H;
+		M += si.M;
+	}	SpatialInertia operator- (const SpatialInertia &si) const {
+		return SpatialInertia (
+				I - si.I,
+				H - si.H,
+				M - si.M
+				);
+	}
+
+	SpatialMatrix toMatrix() const {
+		SpatialMatrix result;
+		result.block<3,3>(0,0) = I;
+		result.block<3,3>(3,0) = H;
+		result.block<3,3>(0,3) = H.transpose();
+		result.block<3,3>(3,3) = M;
+		return result;
+	}
+};
+
 struct RBDL_DLLAPI SpatialRigidBodyInertia {
 	SpatialRigidBodyInertia() :
 		m (0.),
@@ -36,7 +239,7 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 				);
 	}
 
-	SpatialVector operator* (const SpatialVector &mv) {
+	SpatialVector operator* (const SpatialVector &mv) const {
 		Vector3d mv_upper (mv[0], mv[1], mv[2]);
 		Vector3d mv_lower (mv[3], mv[4], mv[5]);
 
@@ -46,6 +249,13 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 		return SpatialVector (
 				res_upper[0], res_upper[1], res_upper[2],
 				res_lower[0], res_lower[1], res_lower[2]
+				);
+	}
+
+	SpatialForce operator* (const SpatialMotion &sm) const {
+		return SpatialForce (
+				I * sm.w + h.cross(sm.v),
+				m * sm.v - h.cross(sm.w)
 				);
 	}
 
@@ -98,6 +308,47 @@ struct RBDL_DLLAPI SpatialTransform {
 		r (translation)
 	{}
 
+	SpatialMotion apply (const SpatialMotion &sm) const {
+		return SpatialMotion (
+				E * sm.w,
+				- E * r.cross (sm.w) + E * sm.v
+				);
+	}
+	SpatialForce apply (const SpatialForce &sf) const {
+		return SpatialForce (
+				E * (sf.n - r.cross (sf.f)),
+				E * sf.f
+				);
+	}
+
+	SpatialMotion applyInverse (const SpatialMotion &sm) const {
+		return SpatialMotion (
+				E.transpose() * sm.w,
+				E.transpose() * sm.v + r.cross(E.transpose() * sm.w)
+				);
+	}
+	SpatialForce applyInverse (const SpatialForce &sf) const {
+		return SpatialForce (
+				E.transpose() * sf.n + r.cross (E.transpose() * sf.f),
+				E.transpose() * sf.f
+				);
+	}
+
+	SpatialInertia apply (const SpatialInertia &si) const {
+		return SpatialInertia (
+				E * si.M * E.transpose(),
+				E * (si.H - VectorCrossMatrix(r) * si.M) * E.transpose(),
+				E * (si.I - VectorCrossMatrix(r) * si.H.transpose() + (si.H - VectorCrossMatrix(r) * si.M) * VectorCrossMatrix (r)) * E.transpose()
+				);
+	}
+	SpatialInertia applyInverse (const SpatialInertia &si) const {
+		Matrix3d Hd = E.transpose() * si.H * E;
+		Matrix3d Md = E.transpose() * si.M * E;
+		return SpatialInertia (
+				Md,
+				Hd + VectorCrossMatrix(r) * Md,
+				E.transpose() * si.I * E + VectorCrossMatrix(r) * Hd.transpose() - (Hd + VectorCrossMatrix(r) * Md) * VectorCrossMatrix(r));
+	}
 	/** Same as X * v.
 	 *
 	 * \returns (E * w, - E * rxw + E * v)
@@ -251,6 +502,16 @@ struct RBDL_DLLAPI SpatialTransform {
 	Matrix3d E;
 	Vector3d r;
 };
+
+inline std::ostream& operator<<(std::ostream& output, const SpatialForce &sf) {
+	output << sf.n.transpose() << ", " << sf.f.transpose();
+	return output;
+}
+
+inline std::ostream& operator<<(std::ostream& output, const SpatialMotion &sm) {
+	output << sm.w.transpose() << ", " << sm.v.transpose();
+	return output;
+}
 
 inline std::ostream& operator<<(std::ostream& output, const SpatialRigidBodyInertia &rbi) {
 	output << "rbi.m = " << rbi.m << std::endl;

@@ -83,16 +83,16 @@ bool ConstraintSet::Bind (const Model &model) {
 	a.conservativeResize (n_constr);
 	QDDot_t.conservativeResize (model.dof_count);
 	QDDot_0.conservativeResize (model.dof_count);
-	f_t.resize (n_constr, SpatialVectorZero);
-	f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
+	f_t.resize (n_constr);
+	f_ext_constraints.resize (model.mBodies.size());
 	point_accel_0.resize (n_constr, Vector3d::Zero());
 
-	d_pA = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
-	d_a = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
+	d_pA = std::vector<SpatialForce> (model.mBodies.size());
+	d_a = std::vector<SpatialMotion> (model.mBodies.size());
 	d_u = VectorNd::Zero (model.mBodies.size());
 
-	d_IA = std::vector<SpatialMatrix> (model.mBodies.size(), SpatialMatrixIdentity);
-	d_U = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
+	d_IA = std::vector<SpatialInertia> (model.mBodies.size());
+	d_U = std::vector<SpatialForce> (model.mBodies.size());
 	d_d = VectorNd::Zero (model.mBodies.size());
 
 	bound = true;
@@ -399,11 +399,12 @@ void ForwardDynamicsApplyConstraintForces (
 	unsigned int i;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		CS.d_pA[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
+//		CS.d_pA[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
+		CS.d_pA[i] = model.v[i].crossf(model.mBodies[i].mSpatialInertia * model.v[i]);
 		CS.d_IA[i] = model.mBodies[i].mSpatialInertia;
 
-		if (CS.f_ext_constraints[i] != SpatialVectorZero) {
-			CS.d_pA[i] -= model.X_base[i].applyAdjoint ((CS.f_ext_constraints)[i]);
+		if (CS.f_ext_constraints[i] != SpatialForce(Vector3d (0., 0., 0.), Vector3d (0., 0., 0.))) {
+			CS.d_pA[i] -= model.X_base[i].apply ((CS.f_ext_constraints)[i]);
 //			LOG << "f_t (local)[" << i << "] = " << spatial_adjoint(model.X_base[i]) * (*f_ext)[i] << std::endl;
 		}
 //		LOG << "i = " << i << " d_p[i] = " << d_p[i].transpose() << std::endl;
@@ -413,7 +414,7 @@ void ForwardDynamicsApplyConstraintForces (
 		unsigned int q_index = model.mJoints[i].q_index;
 
 		if (model.mJoints[i].mDoFCount == 3) {
-			CS.d_multdof3_U[i] = CS.d_IA[i] * model.multdof3_S[i];
+			CS.d_multdof3_U[i] = CS.d_IA[i].toMatrix() * model.multdof3_S[i];
 #ifdef EIGEN_CORE_H
 			CS.d_multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * CS.d_multdof3_U[i]).inverse().eval();
 #else
@@ -421,21 +422,16 @@ void ForwardDynamicsApplyConstraintForces (
 #endif
 			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
 
-			CS.d_multdof3_u[i] = tau_temp - model.multdof3_S[i].transpose() * CS.d_pA[i];
+			CS.d_multdof3_u[i] = tau_temp - model.multdof3_S[i].transpose() * CS.d_pA[i].toVector();
 
 //			LOG << "multdof3_u[" << i << "] = " << model.multdof3_u[i].transpose() << std::endl;
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				SpatialMatrix Ia = CS.d_IA[i] - CS.d_multdof3_U[i] * CS.d_multdof3_Dinv[i] * CS.d_multdof3_U[i].transpose();
-				SpatialVector pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_multdof3_U[i] * CS.d_multdof3_Dinv[i] * model.multdof3_u[i];
-#ifdef EIGEN_CORE_H
-				CS.d_IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-				CS.d_pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-#else
-				CS.d_IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-				CS.d_pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-#endif
-				LOG << "pA[" << lambda << "] = " << CS.d_pA[lambda].transpose() << std::endl;
+				SpatialInertia Ia = CS.d_IA[i] - SpatialInertia::fromMatrix(CS.d_multdof3_U[i] * CS.d_multdof3_Dinv[i] * CS.d_multdof3_U[i].transpose());
+				SpatialForce pa = CS.d_pA[i] + Ia * model.c[i] + SpatialForce::fromVector(CS.d_multdof3_U[i] * CS.d_multdof3_Dinv[i] * model.multdof3_u[i]);
+				CS.d_IA[lambda] += model.X_lambda[i].applyInverse(Ia);
+				CS.d_pA[lambda] += model.X_lambda[i].applyInverse(pa);
+				LOG << "pA[" << lambda << "] = " << CS.d_pA[lambda] << std::endl;
 			}
 		} else {
 			CS.d_U[i] = CS.d_IA[i] * model.S[i];
@@ -444,16 +440,10 @@ void ForwardDynamicsApplyConstraintForces (
 
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				SpatialMatrix Ia = CS.d_IA[i] - CS.d_U[i] * (CS.d_U[i] / CS.d_d[i]).transpose();
-				SpatialVector pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_U[i] * CS.d_u[i] / CS.d_d[i];
-
-#ifdef EIGEN_CORE_H
-				CS.d_IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-				CS.d_pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-#else
-				CS.d_IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-				CS.d_pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-#endif
+				SpatialInertia Ia = CS.d_IA[i] - SpatialInertia::fromMatrix(CS.d_U[i].toVector() * (CS.d_U[i].toVector() / CS.d_d[i]).transpose());
+				SpatialForce pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_U[i] * CS.d_u[i] / CS.d_d[i];
+				CS.d_IA[lambda] += model.X_lambda[i].applyInverse(Ia);
+				CS.d_pA[lambda] += model.X_lambda[i].applyInverse(pa);
 			}
 		}
 	}
@@ -464,11 +454,11 @@ void ForwardDynamicsApplyConstraintForces (
 	*/
 
 	for (unsigned int i = 0; i < CS.f_ext_constraints.size(); i++) {
-		LOG << "f_ext[" << i << "] = " << (CS.f_ext_constraints)[i].transpose();
+		LOG << "f_ext[" << i << "] = " << (CS.f_ext_constraints)[i];
 	}
 
 	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": d_pA[i] - pA[i] " << (CS.d_pA[i] - model.pA[i]).transpose();
+		LOG << "i = " << i << ": d_pA[i] - pA[i] " << (CS.d_pA[i] - model.pA[i]);
 	}
 	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "i = " << i << ": d_u[i] - u[i] = " << (CS.d_u[i] - model.u[i]) << std::endl;
@@ -477,10 +467,10 @@ void ForwardDynamicsApplyConstraintForces (
 		LOG << "i = " << i << ": d_d[i] - d[i] = " << (CS.d_d[i] - model.d[i]) << std::endl;
 	}
 	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": d_U[i] - U[i] = " << (CS.d_U[i] - model.U[i]).transpose() << std::endl;
+		LOG << "i = " << i << ": d_U[i] - U[i] = " << (CS.d_U[i] - model.U[i]) << std::endl;
 	}
 
-	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
+	SpatialMotion spatial_gravity (Vector3d(0., 0., 0.), Vector3d(model.gravity[0], model.gravity[1], model.gravity[2]));
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int q_index = model.mJoints[i].q_index;
@@ -494,11 +484,11 @@ void ForwardDynamicsApplyConstraintForces (
 		}
 
 		if (model.mJoints[i].mDoFCount == 3) {
-			Vector3d qdd_temp = CS.d_multdof3_Dinv[i] * (CS.d_multdof3_u[i] - CS.d_multdof3_U[i].transpose() * model.a[i]);
+			Vector3d qdd_temp = CS.d_multdof3_Dinv[i] * (CS.d_multdof3_u[i] - CS.d_multdof3_U[i].transpose() * model.a[i].toVector());
 			QDDot[q_index] = qdd_temp[0];
 			QDDot[q_index + 1] = qdd_temp[1];
 			QDDot[q_index + 2] = qdd_temp[2];
-			CS.d_a[i] = CS.d_a[i] + model.multdof3_S[i] * qdd_temp;
+			CS.d_a[i] = CS.d_a[i] + SpatialMotion::fromVector(model.multdof3_S[i] * qdd_temp);
 		} else {
 			QDDot[q_index] = (CS.d_u[i] - CS.d_U[i].dot(CS.d_a[i])) / CS.d_d[i];
 			CS.d_a[i] = CS.d_a[i] + model.S[i] * QDDot[q_index];
@@ -518,7 +508,7 @@ void ForwardDynamicsAccelerationDeltas (
 		ConstraintSet &CS,
 		VectorNd &QDDot_t,
 		const unsigned int body_id,
-		const std::vector<SpatialVector> &f_t
+		const std::vector<SpatialForce> &f_t
 		) {
 	LOG << "-------- " << __func__ << " ------" << std::endl;
 
@@ -537,32 +527,32 @@ void ForwardDynamicsAccelerationDeltas (
 		unsigned int q_index = model.mJoints[i].q_index;
 
 		if (i == body_id) {
-			CS.d_pA[i] = -model.X_base[i].applyAdjoint(f_t[i]);
+			CS.d_pA[i] = -model.X_base[i].apply(f_t[i]);
 		}
 
 		if (model.mJoints[i].mDoFCount == 3) {
-			CS.d_multdof3_u[i] = - model.multdof3_S[i].transpose() * (CS.d_pA[i]);
+			CS.d_multdof3_u[i] = - model.multdof3_S[i].transpose() * (CS.d_pA[i].toVector());
 
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.multdof3_U[i] * model.multdof3_Dinv[i] * CS.d_multdof3_u[i]);
+				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyInverse (CS.d_pA[i] + SpatialForce::fromVector(model.multdof3_U[i] * model.multdof3_Dinv[i] * CS.d_multdof3_u[i]));
 			}
 		} else {
 			CS.d_u[i] = - model.S[i].dot(CS.d_pA[i]);
 
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
+				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyInverse (CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
 			}
 		}
 	}
 
 	for (unsigned int i = 0; i < f_t.size(); i++) {
-		LOG << "f_t[" << i << "] = " << f_t[i].transpose();
+		LOG << "f_t[" << i << "] = " << f_t[i];
 	}
 
 	for (unsigned int i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": d_pA[i] " << CS.d_pA[i].transpose();
+		LOG << "i = " << i << ": d_pA[i] " << CS.d_pA[i];
 	}
 	for (unsigned int i = 0; i < model.mBodies.size(); i++) {
 		LOG << "i = " << i << ": d_u[i] = " << CS.d_u[i] << std::endl;
@@ -575,22 +565,22 @@ void ForwardDynamicsAccelerationDeltas (
 		unsigned int q_index = model.mJoints[i].q_index;
 		unsigned int lambda = model.lambda[i];
 
-		SpatialVector Xa = model.X_lambda[i].apply(CS.d_a[lambda]);
+		SpatialMotion Xa = model.X_lambda[i].apply(CS.d_a[lambda]);
 
 		if (model.mJoints[i].mDoFCount == 3) {
-			Vector3d qdd_temp = model.multdof3_Dinv[i] * (CS.d_multdof3_u[i] - model.multdof3_U[i].transpose() * Xa);
+			Vector3d qdd_temp = model.multdof3_Dinv[i] * (CS.d_multdof3_u[i] - model.multdof3_U[i].transpose() * Xa.toVector());
 			QDDot_t[q_index] = qdd_temp[0];
 			QDDot_t[q_index + 1] = qdd_temp[1];
 			QDDot_t[q_index + 2] = qdd_temp[2];
-			model.a[i] = model.a[i] + model.multdof3_S[i] * qdd_temp;
-			CS.d_a[i] = Xa + model.multdof3_S[i] * qdd_temp;
+			model.a[i] = model.a[i] + SpatialMotion::fromVector(model.multdof3_S[i] * qdd_temp);
+			CS.d_a[i] = Xa + SpatialMotion::fromVector(model.multdof3_S[i] * qdd_temp);
 		} else {
 			QDDot_t[q_index] = (CS.d_u[i] - model.U[i].dot(Xa) ) / model.d[i];
 			CS.d_a[i] = Xa + model.S[i] * QDDot_t[q_index];
 		}
 	
 		LOG << "QDDot_t[" << i - 1 << "] = " << QDDot_t[i - 1] << std::endl;
-		LOG << "d_a[i] = " << CS.d_a[i].transpose() << std::endl;
+		LOG << "d_a[i] = " << CS.d_a[i] << std::endl;
 	}
 }
 
@@ -667,10 +657,12 @@ void ForwardDynamicsContacts (
 		Vector3d point_global = CalcBodyToBaseCoordinates (model, Q, body_id, point, false);
 		LOG << "point_global = " << point_global.transpose() << std::endl;
 
-		CS.f_t[ci].set (0., 0., 0., -normal[0], -normal[1], -normal[2]);
-		CS.f_t[ci] = SpatialTransform(Matrix3d::Identity(), -point_global).applyAdjoint(CS.f_t[ci]);
+		CS.f_t[ci].n.setZero();
+		CS.f_t[ci].f = normal;
+
+		CS.f_t[ci] = SpatialTransform(Matrix3d::Identity(), -point_global).apply(CS.f_t[ci]);
 		CS.f_ext_constraints[body_id] = CS.f_t[ci];
-		LOG << "f_t[" << body_id << "] = " << CS.f_t[ci].transpose() << std::endl;
+		LOG << "f_t[" << body_id << "] = " << CS.f_t[ci] << std::endl;
 
 		{
 //			SUPPRESS_LOGGING;
@@ -729,7 +721,7 @@ void ForwardDynamicsContacts (
 		unsigned int body_id = CS.body[ci];
 
 		CS.f_ext_constraints[body_id] -= CS.f_t[ci] * CS.force[ci]; 
-		LOG << "f_ext[" << body_id << "] = " << CS.f_ext_constraints[body_id].transpose() << std::endl;
+		LOG << "f_ext[" << body_id << "] = " << CS.f_ext_constraints[body_id] << std::endl;
 	}
 
 	{

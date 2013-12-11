@@ -32,7 +32,7 @@ struct RBDL_DLLAPI Body {
 		mMass (1.),
 		mCenterOfMass (0., 0., 0.),
 		mInertia (Math::Matrix3d::Zero(3,3)),
-		mSpatialInertia (Math::SpatialMatrix::Zero(6,6)),
+		mSpatialInertia (),
 		mIsVirtual (false)
 	{ };
 	Body(const Body &body) :
@@ -91,14 +91,9 @@ struct RBDL_DLLAPI Body {
 
 			Math::Matrix3d inertia_O = mInertia + pa;
 
-			mSpatialInertia.set (
-					inertia_O(0,0), inertia_O(0,1), inertia_O(0,2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
-					inertia_O(1,0), inertia_O(1,1), inertia_O(1,2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
-					inertia_O(2,0), inertia_O(2,1), inertia_O(2,2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
-					mccT(0, 0), mccT(0, 1), mccT(0, 2), mass, 0., 0.,
-					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
-					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
-					);
+			mSpatialInertia.I = inertia_O;
+			mSpatialInertia.H = mccT;
+			mSpatialInertia.M = Math::Matrix3d::Identity() * mass;
 		}
 
 	/** \brief Constructs a body from mass, center of mass, and a 3x3 inertia matrix 
@@ -132,14 +127,11 @@ struct RBDL_DLLAPI Body {
 			Math::Matrix3d mcc = mass * com_cross;
 			Math::Matrix3d mccT = mcc.transpose();
 
-			mSpatialInertia.set (
-					inertia_C(0,0) + pa(0, 0), inertia_C(0,1) + pa(0, 1), inertia_C(0,2) + pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
-					inertia_C(1,0) + pa(1, 0), inertia_C(1,1) + pa(1, 1), inertia_C(1,2) + pa(1, 2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
-					inertia_C(2,0) + pa(2, 0), inertia_C(2,1) + pa(2, 1), inertia_C(2,2) + pa(2, 2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
-					mccT(0, 0), mccT(0, 1), mccT(0, 2), mass, 0., 0.,
-					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
-					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
-					);
+			Math::Matrix3d inertia_O = mInertia + pa;
+
+			mSpatialInertia.I = inertia_O;
+			mSpatialInertia.H = mccT;
+			mSpatialInertia.M = Math::Matrix3d::Identity() * mass;
 		}
 	
 	/** \brief Joins inertial parameters of two bodies to create a composite
@@ -187,7 +179,7 @@ struct RBDL_DLLAPI Body {
 		// 4. Sum the two inertias
 		// 5. Transform the summed inertia to the new COM
 
-		Math::Matrix3d inertia_other = other_body.mSpatialInertia.block<3,3>(0,0);
+		Math::Matrix3d inertia_other = other_body.mSpatialInertia.I;
 		LOG << "inertia_other = " << std::endl << inertia_other << std::endl;
 
 		// 1. Transform the inertia from other origin to other COM
@@ -204,7 +196,7 @@ struct RBDL_DLLAPI Body {
 		LOG << "inertia_other_com_rotated_this_origin = " << std::endl << inertia_other_com_rotated_this_origin << std::endl;
 
 		// 4. Sum the two inertias
-		Math::Matrix3d inertia_summed = Math::Matrix3d (mSpatialInertia.block<3,3>(0,0)) + inertia_other_com_rotated_this_origin;
+		Math::Matrix3d inertia_summed = Math::Matrix3d (mSpatialInertia.I) + inertia_other_com_rotated_this_origin;
 		LOG << "inertia_summed  = " << std::endl << inertia_summed << std::endl;
 
 		// 5. Transform the summed inertia to the new COM
@@ -226,7 +218,7 @@ struct RBDL_DLLAPI Body {
 	/// \brief Inertia matrix at the center of mass
 	Math::Matrix3d mInertia;
 	/// \brief The spatial inertia that contains both mass and inertia information
-	Math::SpatialMatrix mSpatialInertia;
+	Math::SpatialInertia mSpatialInertia;
 
 	bool mIsVirtual;
 };
@@ -243,7 +235,7 @@ struct RBDL_DLLAPI FixedBody {
 	/// \brief The position of the center of mass in body coordinates
 	Math::Vector3d mCenterOfMass;
 	/// \brief The spatial inertia that contains both mass and inertia information
-	Math::SpatialMatrix mSpatialInertia;
+	Math::SpatialInertia mSpatialInertia;
 
 	/// \brief Id of the movable body that this fixed body is attached to.
 	unsigned int mMovableParent;

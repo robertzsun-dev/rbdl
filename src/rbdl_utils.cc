@@ -89,7 +89,7 @@ RBDL_DLLAPI std::string GetDofDescription (const Model &model, unsigned int dof_
 		return get_body_name(model, joint_index) + dof_name;
 	}
 
-	return get_body_name(model, joint_index) + std::string("_") + get_dof_name (model.mJoints[joint_index].mJointAxes[axis_index]);
+	return get_body_name(model, joint_index) + std::string("_") + get_dof_name (model.mJoints[joint_index].mJointAxes[axis_index].toVector());
 }
 
 RBDL_DLLAPI std::string GetModelDofOverview (const Model &model) {
@@ -131,11 +131,11 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 			abort();
 		}
 
-		result << get_dof_name(model.S[body_index]) << ", ";
+		result << get_dof_name(model.S[body_index].toVector()) << ", ";
 
 		body_index = model.mu[body_index][0];
 	}
-	result << get_dof_name(model.S[body_index]);
+	result << get_dof_name(model.S[body_index].toVector());
 
 	result << " ]" << endl;
 

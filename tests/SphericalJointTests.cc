@@ -26,13 +26,13 @@ struct SphericalJoint {
 		body = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
 		joint_rot_zyx = Joint (
-				SpatialVector (0., 0., 1., 0., 0., 0.),
-				SpatialVector (0., 1., 0., 0., 0., 0.),
-				SpatialVector (1., 0., 0., 0., 0., 0.)
+				SpatialMotion (0., 0., 1., 0., 0., 0.),
+				SpatialMotion (0., 1., 0., 0., 0., 0.),
+				SpatialMotion (1., 0., 0., 0., 0., 0.)
 				);
 		joint_spherical = Joint (JointTypeSpherical);
 
-		joint_rot_y = Joint (SpatialVector (0., 1., 0., 0., 0., 0.));
+		joint_rot_y = Joint (SpatialMotion (0., 1., 0., 0., 0., 0.));
 
 		emulated_model.AppendBody (Xtrans(Vector3d (0., 0., 0.)), joint_rot_y, body);
 		emu_body_id = emulated_model.AppendBody (Xtrans (Vector3d (1., 0., 0.)), joint_rot_zyx, body);
@@ -461,9 +461,9 @@ TEST (SphericalJointZYX) {
 	Body body (1., Vector3d (0.5, 0., 0.), Vector3d (0.2, 0.3, 0.4));
 	Joint joint_spherical_zyx (JointTypeSphericalZYX);
 	Joint joint_emulated_zyx (
-			SpatialVector (0., 0., 1., 0., 0., 0.),
-			SpatialVector (0., 1., 0., 0., 0., 0.),
-			SpatialVector (1., 0., 0., 0., 0., 0.)
+			SpatialMotion (0., 0., 1., 0., 0., 0.),
+			SpatialMotion (0., 1., 0., 0., 0., 0.),
+			SpatialMotion (1., 0., 0., 0., 0., 0.)
 			);
 
 	Model model_spherical_zyx;

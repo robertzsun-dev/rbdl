@@ -28,18 +28,9 @@ namespace RigidBodyDynamics {
 
 			if (model.mJoints[joint_id].mDoFCount == 1) {
 				if (model.mJoints[joint_id].mJointType == JointTypeRevolute) {
-					return Xrot (q[model.mJoints[joint_id].q_index], Vector3d (
-								model.mJoints[joint_id].mJointAxes[0][0],
-								model.mJoints[joint_id].mJointAxes[0][1],
-								model.mJoints[joint_id].mJointAxes[0][2]
-								));
+					return Xrot (q[model.mJoints[joint_id].q_index], model.mJoints[joint_id].mJointAxes[0].w);
 				} else if (model.mJoints[joint_id].mJointType == JointTypePrismatic) {
-					return Xtrans ( Vector3d (
-								model.mJoints[joint_id].mJointAxes[0][3] * q[model.mJoints[joint_id].q_index],
-								model.mJoints[joint_id].mJointAxes[0][4] * q[model.mJoints[joint_id].q_index],
-								model.mJoints[joint_id].mJointAxes[0][5] * q[model.mJoints[joint_id].q_index]
-								)
-							);
+					return Xtrans ( model.mJoints[joint_id].mJointAxes[0].v * q[model.mJoints[joint_id].q_index]);
 				}
 			} else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
 				return SpatialTransform ( model.GetQuaternion (joint_id, q).toMatrix(), Vector3d (0., 0., 0.));
@@ -72,8 +63,8 @@ namespace RigidBodyDynamics {
 				Model &model,
 				unsigned int joint_id,
 				SpatialTransform &XJ,
-				SpatialVector &v_J,
-				SpatialVector &c_J,
+				SpatialMotion &v_J,
+				SpatialMotion &c_J,
 				const VectorNd &q,
 				const VectorNd &qdot
 				) {
@@ -104,9 +95,10 @@ namespace RigidBodyDynamics {
 						qdot[model.mJoints[joint_id].q_index+1],
 						qdot[model.mJoints[joint_id].q_index+2]);
 
-				v_J = SpatialVector (
-						omega[0], omega[1], omega[2],
-						0., 0., 0.);
+				v_J = SpatialMotion(
+						Vector3d(omega[0], omega[1], omega[2]),
+						Vector3d(0., 0., 0.)
+						);
 
 				c_J.setZero();
 			} else if (model.mJoints[joint_id].mJointType == JointTypeSphericalZYX) {
@@ -142,14 +134,14 @@ namespace RigidBodyDynamics {
 				double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
 				double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-				v_J = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
+				v_J = SpatialMotion::fromVector(model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2));
 
-				c_J = SpatialVector (
-						-c1 * qdot0 * qdot1,
-						-s1 * s2 * qdot0 * qdot1 + c1 * c2 * qdot0 * qdot2 - s2 * qdot1 * qdot2,
-						-s1 * c2 * qdot0 * qdot1 - c1 * s2 * qdot0 * qdot2 - c2 * qdot1 * qdot2,
-						0., 0., 0.
-						);
+				c_J.w = Vector3d (
+							-c1 * qdot0 * qdot1,
+							-s1 * s2 * qdot0 * qdot1 + c1 * c2 * qdot0 * qdot2 - s2 * qdot1 * qdot2,
+							-s1 * c2 * qdot0 * qdot1 - c1 * s2 * qdot0 * qdot2 - c2 * qdot1 * qdot2
+							);
+				c_J.v.setZero();
 			} else {
 		// Only revolute joints supported so far
 		assert (0);

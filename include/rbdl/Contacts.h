@@ -163,22 +163,22 @@ struct RBDL_DLLAPI ConstraintSet {
 	/// Workspace for the default accelerations.
 	Math::VectorNd QDDot_0;
 	/// Workspace for the test forces.
-	std::vector<Math::SpatialVector> f_t;
+	std::vector<Math::SpatialForce> f_t;
 	/// Workspace for the actual spatial forces.
-	std::vector<Math::SpatialVector> f_ext_constraints;
+	std::vector<Math::SpatialForce> f_ext_constraints;
 	/// Workspace for the default point accelerations.
 	std::vector<Math::Vector3d> point_accel_0;
 
 	/// Workspace for the bias force due to the test force
-	std::vector<Math::SpatialVector> d_pA;
+	std::vector<Math::SpatialForce> d_pA;
 	/// Workspace for the acceleration due to the test force
-	std::vector<Math::SpatialVector> d_a;
+	std::vector<Math::SpatialMotion> d_a;
 	Math::VectorNd d_u;
 
 	/// Workspace for the inertia when applying constraint forces
-	std::vector<Math::SpatialMatrix> d_IA;
+	std::vector<Math::SpatialInertia> d_IA;
 	/// Workspace when applying constraint forces
-	std::vector<Math::SpatialVector> d_U;
+	std::vector<Math::SpatialForce> d_U;
 	/// Workspace when applying constraint forces
 	Math::VectorNd d_d;
 

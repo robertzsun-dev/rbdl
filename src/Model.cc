@@ -25,7 +25,8 @@ Model::Model() {
 	Joint root_joint;
 
 	Vector3d zero_position (0., 0., 0.);
-	SpatialVector zero_spatial (0., 0., 0., 0., 0., 0.);
+	SpatialMotion zero_motion (Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	SpatialForce zero_force (Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 
 	// structural information
 	lambda.push_back(0.);
@@ -38,12 +39,12 @@ Model::Model() {
 	gravity = Vector3d (0., -9.81, 0.);
 
 	// state information
-	v.push_back(zero_spatial);
-	a.push_back(zero_spatial);
+	v.push_back(zero_motion);
+	a.push_back(zero_motion);
 
 	// Joints
 	mJoints.push_back(root_joint);
-	S.push_back (zero_spatial);
+	S.push_back (zero_motion);
 	X_T.push_back(SpatialTransform());
 
 	// Spherical joints
@@ -54,15 +55,15 @@ Model::Model() {
 	multdof3_w_index.push_back (0);
 
 	// Dynamic variables
-	c.push_back(zero_spatial);
-	IA.push_back(SpatialMatrixIdentity);
-	pA.push_back(zero_spatial);
-	U.push_back(zero_spatial);
+	c.push_back(zero_motion);
+	IA.push_back(SpatialInertia(Matrix3d::Identity(), Matrix3d::Zero(), Matrix3d::Identity()));
+	pA.push_back(zero_force);
+	U.push_back(zero_force);
 
 	u = VectorNd::Zero(1);
 	d = VectorNd::Zero(1);
 
-	f.push_back (zero_spatial);
+	f.push_back (zero_force);
 	Ic.push_back (
 			SpatialRigidBodyInertia(
 				0.,
@@ -165,14 +166,8 @@ unsigned int AddBodyMultiDofJoint (
 	// which each is attached to the model with a single degree of freedom
 	// joint.
 	for (j = 0; j < joint_count; j++) {
-		Vector3d rotation (
-				joint.mJointAxes[j][0],
-				joint.mJointAxes[j][1],
-				joint.mJointAxes[j][2]);
-		Vector3d translation (
-				joint.mJointAxes[j][3],
-				joint.mJointAxes[j][4],
-				joint.mJointAxes[j][5]);
+		Vector3d rotation (joint.mJointAxes[j].w);
+		Vector3d translation (joint.mJointAxes[j].v);
 
 		if (rotation == Vector3d (0., 0., 0.)) {
 			single_dof_joint = Joint (JointTypePrismatic, translation);
@@ -250,9 +245,12 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		mBodyNameMap[body_name] = mBodies.size() - 1;
 	}
 
+	SpatialForce zero_force = SpatialForce (Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	SpatialMotion zero_motion = SpatialMotion (Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+
 	// state information
-	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
-	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
+	v.push_back(zero_motion);
+	a.push_back(zero_motion);
 
 	// Joints
 	unsigned int last_q_index = mJoints.size() - 1;
@@ -288,15 +286,15 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	X_T.push_back(joint_frame * movable_parent_transform);
 
 	// Dynamic variables
-	c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
+	c.push_back(zero_motion);
 	IA.push_back(body.mSpatialInertia);
-	pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
-	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
+	pA.push_back(zero_force);
+	U.push_back(zero_force);
 
 	d = VectorNd::Zero (mBodies.size());
 	u = VectorNd::Zero (mBodies.size());
 
-	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
+	f.push_back (zero_force);
 	Ic.push_back (
 			SpatialRigidBodyInertia(
 				body.mMass,
@@ -335,12 +333,12 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 	//
 
 	Joint floating_base_joint (
-			SpatialVector (0., 0., 0., 1., 0., 0.),
-			SpatialVector (0., 0., 0., 0., 1., 0.),
-			SpatialVector (0., 0., 0., 0., 0., 1.),
-			SpatialVector (0., 0., 1., 0., 0., 0.),
-			SpatialVector (0., 1., 0., 0., 0., 0.),
-			SpatialVector (1., 0., 0., 0., 0., 0.)
+			SpatialMotion (0., 0., 0., 1., 0., 0.),
+			SpatialMotion (0., 0., 0., 0., 1., 0.),
+			SpatialMotion (0., 0., 0., 0., 0., 1.),
+			SpatialMotion (0., 0., 1., 0., 0., 0.),
+			SpatialMotion (0., 1., 0., 0., 0., 0.),
+			SpatialMotion (1., 0., 0., 0., 0., 0.)
 			);
 
 	unsigned int body_id = this->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), floating_base_joint, body);
