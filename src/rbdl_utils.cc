@@ -69,7 +69,7 @@ RBDL_DLLAPI std::string GetDofDescription (const Model &model, unsigned int dof_
 	} else {
 		for (joint_index = 0; joint_index < model.mJoints.size(); joint_index++) {
 			unsigned int q_index = model.mJoints[joint_index].q_index;
-			if (q_index <= dof_index  && q_index + model.mJoints[joint_index].mDofCount > dof_index) {
+			if (q_index <= dof_index  && q_index + model.mJoints[joint_index].mDoFCount > dof_index) {
 				axis_index = dof_index - q_index;
 				break;
 			}
