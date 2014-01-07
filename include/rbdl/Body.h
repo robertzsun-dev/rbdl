@@ -92,7 +92,7 @@ struct RBDL_DLLAPI Body {
 			Math::Matrix3d inertia_O = mInertia + pa;
 
 			mSpatialInertia.I = inertia_O;
-			mSpatialInertia.H = mccT;
+			mSpatialInertia.H = mcc;
 			mSpatialInertia.M = Math::Matrix3d::Identity() * mass;
 		}
 
@@ -130,7 +130,7 @@ struct RBDL_DLLAPI Body {
 			Math::Matrix3d inertia_O = mInertia + pa;
 
 			mSpatialInertia.I = inertia_O;
-			mSpatialInertia.H = mccT;
+			mSpatialInertia.H = mcc;
 			mSpatialInertia.M = Math::Matrix3d::Identity() * mass;
 		}
 	

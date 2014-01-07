@@ -213,8 +213,8 @@ struct RBDL_DLLAPI SpatialInertia {
 	SpatialMatrix toMatrix() const {
 		SpatialMatrix result;
 		result.block<3,3>(0,0) = I;
-		result.block<3,3>(3,0) = H;
-		result.block<3,3>(0,3) = H.transpose();
+		result.block<3,3>(3,0) = H.transpose();
+		result.block<3,3>(0,3) = H;
 		result.block<3,3>(3,3) = M;
 		return result;
 	}

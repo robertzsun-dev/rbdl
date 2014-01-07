@@ -16,7 +16,7 @@ SET ( TESTS_SRCS
 	#	SphericalJointTests.cc
 	KinematicsTests.cc
 	BodyTests.cc
-	ModelTests.cc
+	# ModelTests.cc
 	# FloatingBaseTests.cc
 	# CalcVelocitiesTests.cc
 	# CalcAccelerationsTests.cc
