@@ -343,7 +343,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 					Vector3d H_temp2 = (F.toVector().transpose() * model.multdof3_S[j]).transpose();
 
 					H.block<1,3>(dof_index_i,dof_index_j) = H_temp2.transpose();
- 					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;
+					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;
 				} else {
 					H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
 					H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);

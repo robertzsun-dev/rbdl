@@ -13,10 +13,10 @@ SET ( TESTS_SRCS
 	main.cc
 	MathTests.cc
 	SpatialAlgebraTests.cc
-	#	SphericalJointTests.cc
+	SphericalJointTests.cc
 	KinematicsTests.cc
 	BodyTests.cc
-	# ModelTests.cc
+	ModelTests.cc
 	# FloatingBaseTests.cc
 	# CalcVelocitiesTests.cc
 	# CalcAccelerationsTests.cc

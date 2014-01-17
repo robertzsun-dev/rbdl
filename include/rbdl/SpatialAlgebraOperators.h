@@ -170,9 +170,9 @@ struct RBDL_DLLAPI SpatialInertia {
 	Matrix3d M;
 
 	SpatialInertia () :
-		I (Matrix3d::Identity()),
+		I (Matrix3d::Zero()),
 		H (Matrix3d::Zero()),
-		M (Matrix3d::Identity()) {
+		M (Matrix3d::Zero()) {
 		}
 
 	SpatialInertia (const Matrix3d &I, const Matrix3d &H, const Matrix3d &M) :
@@ -336,18 +336,18 @@ struct RBDL_DLLAPI SpatialTransform {
 
 	SpatialInertia apply (const SpatialInertia &si) const {
 		return SpatialInertia (
-				E * si.M * E.transpose(),
+				E * (si.I - VectorCrossMatrix(r) * si.H.transpose() + (si.H - VectorCrossMatrix(r) * si.M) * VectorCrossMatrix (r)) * E.transpose(),
 				E * (si.H - VectorCrossMatrix(r) * si.M) * E.transpose(),
-				E * (si.I - VectorCrossMatrix(r) * si.H.transpose() + (si.H - VectorCrossMatrix(r) * si.M) * VectorCrossMatrix (r)) * E.transpose()
+				E * si.M * E.transpose()
 				);
 	}
 	SpatialInertia applyInverse (const SpatialInertia &si) const {
 		Matrix3d Hd = E.transpose() * si.H * E;
 		Matrix3d Md = E.transpose() * si.M * E;
 		return SpatialInertia (
-				Md,
+				E.transpose() * si.I * E + VectorCrossMatrix(r) * Hd.transpose() - (Hd + VectorCrossMatrix(r) * Md) * VectorCrossMatrix(r),
 				Hd + VectorCrossMatrix(r) * Md,
-				E.transpose() * si.I * E + VectorCrossMatrix(r) * Hd.transpose() - (Hd + VectorCrossMatrix(r) * Md) * VectorCrossMatrix(r));
+				Md);
 	}
 	/** Same as X * v.
 	 *

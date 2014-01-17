@@ -508,7 +508,26 @@ TEST(TestSpatialTransformInverseOfSpatialInertia) {
 	CHECK_ARRAY_CLOSE (s_matrix.data(), si.toMatrix().data(), 36, TEST_PREC);
 }
 
-TEST(TestSpatialTransformSpatialInertia) {
+TEST(TestSpatialTransformSpatialInertiaApply) {
+	SpatialMatrix s_matrix (
+			1., 0., 0., 0., 0., 7.,
+			0., 2., 0., 0., 8., 0.,
+			0., 0., 3., 9., 0., 0.,
+			0., 0., 9., 4., 0., 0.,
+			0., 8., 0., 0., 5., 0.,
+			7., 0., 0., 0., 0., 6.
+			);
+
+	SpatialInertia si (SpatialInertia::fromMatrix(s_matrix));
+	SpatialTransform X = Xrotz (0.2) * Xroty(0.6) * Xtrans(Vector3d (0.2, 0.5, 0.6));
+
+	SpatialInertia transformed = X.apply(si);
+	SpatialMatrix reference = X.toMatrixAdjoint() * si.toMatrix() * (X.inverse().toMatrix());
+
+	CHECK_ARRAY_CLOSE (reference.data(), transformed.toMatrix().data(), 36, TEST_PREC);
+}
+
+TEST(TestSpatialTransformSpatialInertiaApplyInverse) {
 	SpatialMatrix s_matrix (
 			1., 0., 0., 0., 0., 7.,
 			0., 2., 0., 0., 8., 0.,
@@ -522,19 +541,7 @@ TEST(TestSpatialTransformSpatialInertia) {
 	SpatialTransform X = Xrotz (0.2) * Xroty(0.6) * Xtrans(Vector3d (0.2, 0.5, 0.6));
 
 	SpatialInertia transformed = X.applyInverse(si);
-	SpatialMatrix reference =
-//		spatial_adjoint_helper (X.toMatrix()) * si.toMatrix() * spatial_inverse_helper (X.toMatrix());
- X.toMatrix().transpose() * si.toMatrix() * (X.toMatrix());
-
-//	cout << "X = " << endl << X << endl;
-//	cout << "X.toMatrix() " << endl << X.toMatrix() << endl;
-//	cout << "man = " << endl << X.E * si.M * X.E.transpose() << endl;
-//	cout << "trans f " << endl <<  transformed.toMatrix().block<3,3>(0,0) << endl;
-//	cout << "ref = " << endl << reference.block<3,3>(0,0) << endl;
-
-
-	cout << "err = " << endl;
-	cout << reference - transformed.toMatrix() << endl;
+	SpatialMatrix reference = X.toMatrix().transpose() * si.toMatrix() * (X.toMatrix());
 
 	CHECK_ARRAY_CLOSE (reference.data(), transformed.toMatrix().data(), 36, TEST_PREC);
 }

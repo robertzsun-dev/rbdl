@@ -251,13 +251,13 @@ TEST_FIXTURE(SphericalJoint, TestUpdateKinematics) {
 	UpdateKinematicsCustom (emulated_model, &emuQ, &emuQDot, &emuQDDot);
 	UpdateKinematicsCustom (multdof3_model, &sphQ, &sphQDot, &sphQDDot);
 
-	CHECK_ARRAY_CLOSE (emulated_model.v[emu_body_id].data(), multdof3_model.v[sph_body_id].data(), 6, TEST_PREC);
-	CHECK_ARRAY_CLOSE (emulated_model.a[emu_body_id].data(), multdof3_model.a[sph_body_id].data(), 6, TEST_PREC);
+	CHECK_ARRAY_CLOSE (emulated_model.v[emu_body_id].toVector().data(), multdof3_model.v[sph_body_id].toVector().data(), 6, TEST_PREC);
+	CHECK_ARRAY_CLOSE (emulated_model.a[emu_body_id].toVector().data(), multdof3_model.a[sph_body_id].toVector().data(), 6, TEST_PREC);
 
 	UpdateKinematics (multdof3_model, sphQ, sphQDot, sphQDDot);
 
-	CHECK_ARRAY_CLOSE (emulated_model.v[emu_child_id].data(), multdof3_model.v[sph_child_id].data(), 6, TEST_PREC);
-	CHECK_ARRAY_CLOSE (emulated_model.a[emu_child_id].data(), multdof3_model.a[sph_child_id].data(), 6, TEST_PREC);
+	CHECK_ARRAY_CLOSE (emulated_model.v[emu_child_id].toVector().data(), multdof3_model.v[sph_child_id].toVector().data(), 6, TEST_PREC);
+	CHECK_ARRAY_CLOSE (emulated_model.a[emu_child_id].toVector().data(), multdof3_model.a[sph_child_id].toVector().data(), 6, TEST_PREC);
 }
 
 TEST_FIXTURE(SphericalJoint, TestSpatialVelocities) {
@@ -276,7 +276,7 @@ TEST_FIXTURE(SphericalJoint, TestSpatialVelocities) {
 	UpdateKinematicsCustom (emulated_model, &emuQ, &emuQDot, NULL);
 	UpdateKinematicsCustom (multdof3_model, &sphQ, &sphQDot, NULL);
 
-	CHECK_ARRAY_CLOSE (emulated_model.v[emu_child_id].data(), multdof3_model.v[sph_child_id].data(), 6, TEST_PREC);
+	CHECK_ARRAY_CLOSE (emulated_model.v[emu_child_id].toVector().data(), multdof3_model.v[sph_child_id].toVector().data(), 6, TEST_PREC);
 }
 
 TEST_FIXTURE(SphericalJoint, TestForwardDynamicsQAndQDot) {
@@ -295,7 +295,7 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsQAndQDot) {
 	ForwardDynamics (emulated_model, emuQ, emuQDot, emuTau, emuQDDot);
 	ForwardDynamics (multdof3_model, sphQ, sphQDot, sphTau, sphQDDot);
 
-	CHECK_ARRAY_CLOSE (emulated_model.a[emu_child_id].data(), multdof3_model.a[sph_child_id].data(), 6, TEST_PREC);
+	CHECK_ARRAY_CLOSE (emulated_model.a[emu_child_id].toVector().data(), multdof3_model.a[sph_child_id].toVector().data(), 6, TEST_PREC);
 }
 
 TEST_FIXTURE(SphericalJoint, TestDynamicsConsistencyRNEA_ABA ) {
@@ -401,8 +401,12 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsLagrangianVsABA ) {
 	VectorNd QDDot_aba = VectorNd::Zero (multdof3_model.qdot_size);
 	VectorNd QDDot_lag = VectorNd::Zero (multdof3_model.qdot_size);
 
+	ClearLogOutput();
+
 	ForwardDynamics (multdof3_model, sphQ, sphQDot, sphTau, QDDot_aba);
 	ForwardDynamicsLagrangian (multdof3_model, sphQ, sphQDot, sphTau, QDDot_lag);
+
+	cout << LogOutput.str() << endl;
 
 	CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), multdof3_model.qdot_size, TEST_PREC);
 }
