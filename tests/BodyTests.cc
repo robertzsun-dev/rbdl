@@ -203,13 +203,13 @@ TEST ( TestBodyConstructorSpatialRigidBodyInertiaMultiplyMotion ) {
 				body.mSpatialInertia.I
 				);
 
-	SpatialVector mv (1.1, 1.2, 1.3, 1.4, 1.5, 1.6);
-	SpatialVector fv_matrix = spatial_inertia * mv;
-	SpatialVector fv_rbi = rbi * mv;
+	SpatialMotion mv (1.1, 1.2, 1.3, 1.4, 1.5, 1.6);
+	SpatialForce fv_matrix = SpatialForce::fromVector(spatial_inertia * mv.toVector());
+	SpatialForce fv_rbi = rbi * mv;
 
 	CHECK_ARRAY_CLOSE (
-			fv_matrix.data(),
-			fv_rbi.data(),
+			fv_matrix.toVector().data(),
+			fv_rbi.toVector().data(),
 			6,
 			TEST_PREC
 			);

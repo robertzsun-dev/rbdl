@@ -239,7 +239,7 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 				);
 	}
 
-	SpatialVector operator* (const SpatialVector &mv) const {
+	SpatialVector operator* (const SpatialVector &mv) {
 		Vector3d mv_upper (mv[0], mv[1], mv[2]);
 		Vector3d mv_lower (mv[3], mv[4], mv[5]);
 
@@ -290,6 +290,7 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 	/// Inertia expressed at the origin
 	Matrix3d I;
 };
+
 
 /** \brief Compact representation of spatial transformations.
  *

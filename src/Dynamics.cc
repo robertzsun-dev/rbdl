@@ -335,7 +335,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 			unsigned int dof_index_j = dof_index_i;
 
 			while (model.lambda[j] != 0) {
-				F = model.X_lambda[j].apply(F);
+				F = SpatialForce::fromVector(model.X_lambda[j].applyTranspose(F.toVector()));
 				j = model.lambda[j];
 				dof_index_j = model.mJoints[j].q_index;
 
@@ -346,7 +346,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;
 				} else {
 					H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
-					H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
+	H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
 				}
 			}
 		}

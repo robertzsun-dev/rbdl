@@ -17,15 +17,15 @@ SET ( TESTS_SRCS
 	KinematicsTests.cc
 	BodyTests.cc
 	ModelTests.cc
-	# FloatingBaseTests.cc
-	# CalcVelocitiesTests.cc
-	# CalcAccelerationsTests.cc
-	# DynamicsTests.cc
-	# InverseDynamicsTests.cc
-	# CompositeRigidBodyTests.cc
-	# ImpulsesTests.cc
-	# TwolegModelTests.cc
-	# ContactsTests.cc
+	FloatingBaseTests.cc
+	CalcVelocitiesTests.cc
+	CalcAccelerationsTests.cc
+	DynamicsTests.cc
+	InverseDynamicsTests.cc
+	CompositeRigidBodyTests.cc
+	ImpulsesTests.cc
+	TwolegModelTests.cc
+	ContactsTests.cc
 	)
 
 INCLUDE_DIRECTORIES ( ../src/ )

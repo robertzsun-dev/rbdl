@@ -401,12 +401,8 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsLagrangianVsABA ) {
 	VectorNd QDDot_aba = VectorNd::Zero (multdof3_model.qdot_size);
 	VectorNd QDDot_lag = VectorNd::Zero (multdof3_model.qdot_size);
 
-	ClearLogOutput();
-
 	ForwardDynamics (multdof3_model, sphQ, sphQDot, sphTau, QDDot_aba);
 	ForwardDynamicsLagrangian (multdof3_model, sphQ, sphQDot, sphTau, QDDot_lag);
-
-	cout << LogOutput.str() << endl;
 
 	CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), multdof3_model.qdot_size, TEST_PREC);
 }
