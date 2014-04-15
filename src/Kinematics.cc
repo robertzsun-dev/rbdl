@@ -286,7 +286,7 @@ void CalcPointJacobian (
 			unsigned int q_index = model.mJoints[j].q_index;
 
 			if (model.mJoints[j].mDoFCount == 3) {
-				Matrix63 S_base = point_trans.toMatrix() * model.X_base[j].inverse().toMatrix() * model.multdof3_S[j];
+				Matrix63 S_base = (point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j];
 
 				G(0, q_index) = S_base(3, 0);
 				G(1, q_index) = S_base(4, 0);
@@ -346,9 +346,9 @@ Vector3d CalcPointVelocity (
 	LOG << "body_index     = " << body_id << std::endl;
 	LOG << "point_pos      = " << point_position.transpose() << std::endl;
 //	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
-	LOG << "body_transf    = " << std::endl << model.X_base[reference_body_id].toMatrix() << std::endl;
+	LOG << "body_transf    = " << std::endl << model.X_base[reference_body_id] << std::endl;
 	LOG << "point_abs_ps   = " << point_abs_pos.transpose() << std::endl;
-	LOG << "X   = " << std::endl << (SpatialTransform (Matrix3d::Identity(3,3), point_abs_pos) * model.X_base[reference_body_id].inverse()).toMatrix() << std::endl;
+	LOG << "X   = " << std::endl << (SpatialTransform (Matrix3d::Identity(3,3), point_abs_pos) * model.X_base[reference_body_id].inverse()) << std::endl;
 	LOG << "v   = " << model.v[reference_body_id] << std::endl;
 
 	// Now we can compute the spatial velocity at the given point

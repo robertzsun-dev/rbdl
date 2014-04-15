@@ -289,7 +289,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		if (update_kinematics)
 			model.X_lambda[i] = jcalc_XJ (model, i, Q) * model.X_T[i];
-		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia.toMatrix());
+		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {

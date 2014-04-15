@@ -267,6 +267,12 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 				);
 	}
 
+	void createFromMatrix (const SpatialInertia &Ic) {
+		m = Ic.M(0,0);
+		h.set (-Ic.H(1,2), Ic.H(0,2), -Ic.H(0,1));
+		I = Ic.I;
+	}
+
 	void createFromMatrix (const SpatialMatrix &Ic) {
 		m = Ic(3,3);
 		h.set (-Ic(1,5), Ic(0,5), -Ic(0,4));
