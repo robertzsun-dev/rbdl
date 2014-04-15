@@ -658,7 +658,7 @@ void ForwardDynamicsContacts (
 		LOG << "point_global = " << point_global.transpose() << std::endl;
 
 		CS.f_t[ci].n.setZero();
-		CS.f_t[ci].f = normal;
+		CS.f_t[ci].f = -normal;
 
 		CS.f_t[ci] = SpatialTransform(Matrix3d::Identity(), -point_global).apply(CS.f_t[ci]);
 		CS.f_ext_constraints[body_id] = CS.f_t[ci];
