@@ -1,21 +1,34 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+cmake_minimum_required (VERSION 3.3)
+cmake_policy(VERSION 3.3.0)
+set(HUNTER_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(HUNTER_BUILD_SHARED_LIBS ON)
+set(CMAKE_HELPER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake CACHE INTERNAL "")
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_HELPER_DIR} ${CMAKE_HELPER_DIR}/Hunter)
+include(HunterGate)
+
+HunterGate(
+    URL "https://github.com/ruslo/hunter/archive/v0.19.55.tar.gz"
+    SHA1 "fc4a3e21087b10708d45d503e4dc9e3aa228adf1"
+    LOCAL
+)
 
 PROJECT (RBDL)
 
 SET ( RBDL_VERSION_MAJOR 2 )
 SET ( RBDL_VERSION_MINOR 5 )
 SET ( RBDL_VERSION_PATCH 0 )
-SET ( RBDL_VERSION 
+SET ( RBDL_VERSION
 	${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}
 )
-SET ( RBDL_SO_VERSION 
+SET ( RBDL_SO_VERSION
 	${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}
 )
 SET (PROJECT_VERSION ${RBDL_VERSION})
 
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
-INCLUDE_DIRECTORIES ( 
+INCLUDE_DIRECTORIES (
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 	${CMAKE_CURRENT_BINARY_DIR}/include
 )
@@ -37,6 +50,7 @@ IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 ENDIF()
 
 # Find and use the system's Eigen3 library
+hunter_add_package(Eigen)
 FIND_PACKAGE (Eigen3 3.0.0)
 
 IF (NOT EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
@@ -53,7 +67,7 @@ OPTION (RBDL_BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
 OPTION (RBDL_STORE_VERSION "Enable storing of version information in the library (requires build from valid repository)" OFF)
-OPTION (RBDL_BUILD_ADDON_URDFREADER "Build the (experimental) urdf reader" OFF)
+OPTION (RBDL_BUILD_ADDON_URDFREADER "Build the (experimental) urdf reader" ON)
 OPTION (RBDL_BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
 OPTION (RBDL_BUILD_ADDON_LUAMODEL "Build the lua model reader" OFF)
 OPTION (RBDL_BUILD_PYTHON_WRAPPER "Build experimental python wrapper" OFF)
@@ -76,7 +90,7 @@ IF (RBDL_BUILD_TESTS)
 ENDIF (RBDL_BUILD_TESTS)
 
 # Source files for RBDL
-SET ( RBDL_SOURCES 
+SET ( RBDL_SOURCES
 	src/rbdl_version.cc
 	src/rbdl_mathutils.cc
 	src/rbdl_utils.cc
@@ -131,7 +145,7 @@ ELSE (RBDL_STORE_VERSION)
 ENDIF (RBDL_STORE_VERSION)
 
 CONFIGURE_FILE (
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/rbdl_config.h.cmake" 
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/rbdl_config.h.cmake"
 	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdl_config.h"
 	)
 
@@ -142,7 +156,7 @@ IF (RBDL_BUILD_PYTHON_WRAPPER)
 ENDIF (RBDL_BUILD_PYTHON_WRAPPER)
 
 # Installation
-FILE ( GLOB headers 
+FILE ( GLOB headers
 	${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/*.h
 	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdl_config.h
 	)
