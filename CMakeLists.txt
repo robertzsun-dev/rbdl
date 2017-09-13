@@ -161,6 +161,12 @@ FILE ( GLOB headers
 	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdl_config.h
 	)
 
+target_include_directories(rbdl INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
+
 INSTALL ( FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rbdl )
 
 # Setup of SimpleMath install settings
