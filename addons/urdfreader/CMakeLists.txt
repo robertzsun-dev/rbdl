@@ -106,6 +106,11 @@ FILE ( GLOB headers
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 	)
 
+target_include_directories(rbdl_urdfreader INTERFACE
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+		)
+
 INSTALL ( FILES ${headers} 
 	DESTINATION
 	${CMAKE_INSTALL_INCLUDEDIR}/rbdl/addons/urdfreader 
